@@ -30,7 +30,7 @@ class Driver(object):
     def open(self):
         webdriver.ChromeOptions.binary_location = self.browserPath
         
-        self.driver = webdriver.Chrome(executable_path=self.chromeDriverPath, chrome_options=self.options)
+        self.driver = webdriver.Chrome(executable_path=self.chromeDriverPath, options=self.options)
         
         if self.pageLoadTimeOut:
             self.driver.set_page_load_timeout(self.pageLoadTimeOut)
