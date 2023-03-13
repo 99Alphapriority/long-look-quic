@@ -29,8 +29,9 @@ class Driver(object):
     # @timeout(20)
     def open(self):
         webdriver.ChromeOptions.binary_location = self.browserPath
+        chromeService = webdriver.chrome.service.Service(self.chromeDriverPath)
         
-        self.driver = webdriver.Chrome(executable_path=self.chromeDriverPath, options=self.options)
+        self.driver = webdriver.Chrome(service=chromeService, options=self.options)
         
         if self.pageLoadTimeOut:
             self.driver.set_page_load_timeout(self.pageLoadTimeOut)
