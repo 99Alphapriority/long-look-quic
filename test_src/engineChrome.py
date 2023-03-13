@@ -9,8 +9,9 @@ except ImportError:
     print('SELENIUM NOT AVAILABLE!!! You can only run tests using HAR capturer!!!')
     print('####################################################################\n')
 # import sys, os, time, pickle, socket, json, subprocess, traceback, multiprocessing, subprocess
-# import stats
-# import sideTrafficGenerator
+import time 
+# import stats                  # Module not found
+# import sideTrafficGenerator   # Module not found
 from pythonLib import *         # Custom python file
 from functools import wraps
 import errno
@@ -238,19 +239,91 @@ def main():
 
     #Setting up configs
     PRINT_ACTION('Reading configs file and args', 0)
+    # configs, cases, methods, testDir, resultsDir, statsDir, userDirs, screenshotsDir, dataPaths, netLogs, tcpdumpDir, tcpdumpFile, uniqeOptions, modifyEtcHosts = initialize()
+    # configs.show_all()
+    uniqeOptions = {}
+    uniqeOptions['http'] = []
 
-    # create chrome driver options
-    chromeOptions = webdriver.ChromeOptions()
-    chromeOptions.add_argument("--headless")
+    #Creating options
+    # '''
+    # IMPORTANT: --enable-benchmarking --enable-net-benchmarking: to enable the Javascript interface that allows chrome-har-capturer to flush the DNS cache and the socket pool before loading each URL.
+    #            in other words, clear cache and close connections between runs! 
+    # '''
+    PRINT_ACTION('Creating options', 0)
+    drivers         = {}
+    # stat           = stats.Stats() 
+    chromeOptions   = {}
+    commonOptions   = ['--no-first-run']
+
+    clearCacheConns = True
+    if clearCacheConns:
+        commonOptions += ['--enable-benchmarking', '--enable-net-benchmarking']
+
+    #Creating driver instances and modifying /etc/hosts
+    PRINT_ACTION('Creating driver options and modifying /etc/hosts', 0)
+    cases = ['http'] # add quic
+
+    for case in cases:
+
+        
+        # create chrome driver options
+        chromeOptions[case] = webdriver.ChromeOptions()
+        
+        unCommonOptions = []
+#         unCommonOptions     = ['--user-data-dir={}/{}'.format(userDirs, case),
+#                             '--data-path={}/{}'.format(dataPaths, case),
+# #                                '--log-net-log={}/{}.json'.format(netLogs, case),
+#                             ]
+        extraOptions = ['--headless']
+
+        for option in uniqeOptions[case] + commonOptions + unCommonOptions + extraOptions :
+            chromeOptions[case].add_argument(option)
+
+        print("Chrome Options")
+        print(chromeOptions[case])
+        # creating driver instances
+        drivers[case] = Driver("/proj/FEC-HTTP/long-quic/chromedriver_linux64/chromedriver", "/proj/FEC-HTTP/long-quic/chromium/src/out/Default/chrome", chromeOptions[case])
+
+        drivers[case].open()
 
 
-    # creating driver instances
-    driver = Driver("/proj/FEC-HTTP/long-quic/chromedriver_linux64/chromedriver", "/proj/FEC-HTTP/long-quic/chromium/src/out/Default/chrome", chromeOptions)
+    #Firing off the tests
+    PRINT_ACTION('Firing off the tests', 0)
+    no_of_round = 1
+    for round in range(1, no_of_round+1):
+        url = "https://www.python.org"
+        # stat.start()
 
-    driver.open()
+        drivers[case].get(url)
+        # Stop TCP dump
+        print(drivers[case].driver.title)
+        windowPerformance = drivers[case].driver.execute_script("return window.performance.getEntriesByType('resource');")
 
-    driver.get("https://www.python.org")
-    print(driver.driver.title)
+        print(windowPerformance[0]['duration'])
+        print(windowPerformance)
+
+        # json dump performance resource timing
+
+        # statsRes = stat.stop()
+        # stat.save("stat.json")
+
+        drivers[case].driver.save_screenshot('{}_{}.png'.format("screenshotsDir", "testID"))
+
+        # Not working due to chrom not found error in execute script
+        # Not sure if har-capturer solves this
+        # Temp Fix , close chrome between every runs
+        # if True:
+            # drivers[case].clearCacheAndConnections()
+
+        if True:
+            try:
+                drivers[case].close()
+            except TimeoutError:
+                print('Got stuck closing driver! :-s')
+
+        waitBetweenRounds = 1
+        time.sleep(waitBetweenRounds)
+
 
 if __name__=="__main__":
     main()
