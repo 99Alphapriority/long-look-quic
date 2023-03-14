@@ -300,7 +300,7 @@ def main():
         windowPerformance = drivers[case].driver.execute_script("return window.performance.getEntriesByType('resource');")
 
         print(windowPerformance[0]['duration'])
-        print(windowPerformance)
+        # print(windowPerformance)
 
         # json dump performance resource timing
 
