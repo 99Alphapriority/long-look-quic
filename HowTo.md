@@ -30,9 +30,14 @@ Follow
 https://www.chromium.org/quic/playing-with-quic/
 
 ```bash
-# server
+# quic server
 out/Debug/quic_server --quic_response_cache_dir=/proj/FEC-HTTP/long-quic/quic-data/www.example.org   --certificate_file=net/tools/quic/certs/out/leaf_cert.pem --key_file=net/tools/quic/certs/out/leaf_cert.pkcs8
 
-# client
-out/Debug/quic_client --host=10.10.1.1 --port=6121 --disable_certificate_verification --allow_unknown_root_cert https://www.example.org/
+# quic client
+out/Debug/quic_client --host=10.10.1.1 --port=6121 --allow_unknown_root_cert https://www.example.org/
+
+# alternative use chromium to connect to quic server
+
+out/Default/chrome  --headless  --disable-gpu --remote-debugging-port=9222  --user-data-dir=/tmp/chrome-profile   --no-proxy-server   --enable-quic    --ignore-certificate-errors-spki-list  --disable_certificate_verification --allow_unknown_root_cert  --origin-to-force-quic-on=www.example.org:443   --host-resolver-rules='MAP www.example.org:443 127.0.0.1:6121'   https://www.example.org
+
 ```

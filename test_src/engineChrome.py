@@ -124,7 +124,7 @@ def initialize():
     if configs.get('testDir').endswith('/'):
         configs.set( 'testDir', configs.get('testDir')[:-1] )
     
-    configs.set('chromedriver', selectChromeDriverPath(configs.get('browserPath'), configs.get('platform')))
+    # configs.set('chromedriver', selectChromeDriverPath(configs.get('browserPath'), configs.get('platform')))
     
     configs.set('testDir', configs.get('mainDir') + '/' + configs.get('testDir') )
     
@@ -216,18 +216,18 @@ def initialize():
             'quic-proxy'    : configs.get('quicProxyIP')
             }
     
-    modifyEtcHosts = ModifyEtcHosts()
-    if configs.get('modifyEtcHosts'):
-        for case in cases:
-            try:
-                modifyEtcHosts.add([configs.get('host')[case]])
-            except:
-                print('\t\tmodifyEtcHosts did not add host for:', case)
-                pass
-            if case == 'quic-proxy':
-                modifyEtcHosts.add([configs.get('quicProxyIP')])
-            if case == 'https-proxy':
-                modifyEtcHosts.add([configs.get('httpsProxyIP')])
+    # modifyEtcHosts = ModifyEtcHosts()
+    # if configs.get('modifyEtcHosts'):
+    #     for case in cases:
+    #         try:
+    #             modifyEtcHosts.add([configs.get('host')[case]])
+    #         except:
+    #             print('\t\tmodifyEtcHosts did not add host for:', case)
+    #             pass
+    #         if case == 'quic-proxy':
+    #             modifyEtcHosts.add([configs.get('quicProxyIP')])
+    #         if case == 'https-proxy':
+    #             modifyEtcHosts.add([configs.get('httpsProxyIP')])
     
     return configs, cases, methods, testDir, resultsDir, statsDir, userDirs, screenshotsDir, dataPaths, netLogs, tcpdumpDir, tcpdumpFile, uniqeOptions, modifyEtcHosts
 
@@ -241,8 +241,22 @@ def main():
     PRINT_ACTION('Reading configs file and args', 0)
     # configs, cases, methods, testDir, resultsDir, statsDir, userDirs, screenshotsDir, dataPaths, netLogs, tcpdumpDir, tcpdumpFile, uniqeOptions, modifyEtcHosts = initialize()
     # configs.show_all()
-    uniqeOptions = {}
-    uniqeOptions['http'] = []
+    
+    uniqeOptions  = {'quic' : [
+                            '--enable-quic',
+                            '--origin-to-force-quic-on={}:443'.format("www.example.org"),
+                            # '--quic-host-whitelist={}'.format(configs.get('host')['quic']),
+                            '--no-proxy-server',
+                            '--host-resolver-rules=MAP {}:443 {}:{}'.format("www.example.org", "10.10.1.1", "6121"),
+                            ],       
+                    'http' : [
+                             '--disable-quic',
+                             ],
+                    
+                    'https': [
+                             '--disable-quic',
+                             ],        
+                }
 
     #Creating options
     # '''
@@ -269,12 +283,11 @@ def main():
         # create chrome driver options
         chromeOptions[case] = webdriver.ChromeOptions()
         
-        unCommonOptions = []
-#         unCommonOptions     = ['--user-data-dir={}/{}'.format(userDirs, case),
-#                             '--data-path={}/{}'.format(dataPaths, case),
-# #                                '--log-net-log={}/{}.json'.format(netLogs, case),
-#                             ]
-        extraOptions = ['--headless']
+        unCommonOptions     = ['--user-data-dir={}/{}'.format('tmp', 'chrome-profile'),
+                            # '--data-path={}/{}'.format(dataPaths, case),
+#                                '--log-net-log={}/{}.json'.format(netLogs, case),
+                            ]
+        extraOptions = ['--headless', '--ignore-certificate-errors-spki-list']
 
         for option in uniqeOptions[case] + commonOptions + unCommonOptions + extraOptions :
             chromeOptions[case].add_argument(option)
@@ -291,16 +304,25 @@ def main():
     PRINT_ACTION('Firing off the tests', 0)
     no_of_round = 1
     for round in range(1, no_of_round+1):
-        url = "https://www.python.org"
+        url = "https://www.example.org"
         # stat.start()
 
-        drivers[case].get(url)
+        try:
+            drivers[case].get(url)
+        except Exception as e:
+            print('###### EXCEPTION during {}#######'.format(testID))
+            print(e)
+            traceback.print_exc()
+            continue
         # Stop TCP dump
+        print("Title")
         print(drivers[case].driver.title)
+        print("Source")
+        print(drivers[case].driver.page_source)
         windowPerformance = drivers[case].driver.execute_script("return window.performance.getEntriesByType('resource');")
 
-        print(windowPerformance[0]['duration'])
-        # print(windowPerformance)
+        # print(windowPerformance[0]['duration'])
+        print(windowPerformance)
 
         # json dump performance resource timing
 
