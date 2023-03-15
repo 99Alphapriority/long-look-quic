@@ -275,7 +275,7 @@ def main():
 
     #Creating driver instances and modifying /etc/hosts
     PRINT_ACTION('Creating driver options and modifying /etc/hosts', 0)
-    cases = ['http'] # add quic
+    cases = ['quic'] # add quic
 
     for case in cases:
 
@@ -287,7 +287,7 @@ def main():
                             # '--data-path={}/{}'.format(dataPaths, case),
 #                                '--log-net-log={}/{}.json'.format(netLogs, case),
                             ]
-        extraOptions = ['--headless', '--ignore-certificate-errors-spki-list']
+        extraOptions = ['--headless', '--ignore-certificate-errors-spki-list', '--allow_unknown_root_cert']
 
         for option in uniqeOptions[case] + commonOptions + unCommonOptions + extraOptions :
             chromeOptions[case].add_argument(option)
