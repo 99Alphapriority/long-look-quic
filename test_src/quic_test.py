@@ -1,3 +1,7 @@
+# Script to test quic server using chromium as client
+# Use server public key's skpi to get chromium to connect 
+# to quic server which is using self-signed certificate
+
 from selenium import webdriver
 # from selenium.webdriver.common.keys import Keys
 
