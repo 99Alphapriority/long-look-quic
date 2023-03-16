@@ -1,4 +1,4 @@
-import BaseHTTPServer, SimpleHTTPServer
+import http.server
 import os
 import ssl
 
@@ -8,8 +8,8 @@ if __name__ == '__main__':
     # openssl req -out server.req -key server.key -new -nodes -subj '/CN=mylocalhost'
     # openssl req -out client.req -key client.key -new -nodes -subj '/CN=mylocalhost'
 
-    httpd = BaseHTTPServer.HTTPServer(('', 8000),
-            SimpleHTTPServer.SimpleHTTPRequestHandler)
+    httpd = http.server.HTTPServer(('', 8000),
+            http.server.SimpleHTTPRequestHandler)
 
     httpd.socket = ssl.wrap_socket (httpd.socket,
             keyfile="./server.key",
