@@ -29,9 +29,14 @@ gn gen out/Debug
 Follow
 https://www.chromium.org/quic/playing-with-quic/
 
+Certs:
+* Make sure to update leaf.cnf if you choose to use different domain or IP and then generate certs
+* Add ca root key to OS so that client can use that
+* Get SPKI of server public key so chromium can accept self-signed certs
+
 ```bash
 # quic server
-out/Debug/quic_server --quic_response_cache_dir=/proj/FEC-HTTP/long-quic/quic-data/www.example.org   --certificate_file=net/tools/quic/certs/out/leaf_cert.pem --key_file=net/tools/quic/certs/out/leaf_cert.pkcs8
+out/Debug/quic_server --port=10001 --quic_response_cache_dir=/proj/FEC-HTTP/long-quic/quic-data/www.example.org   --certificate_file=net/tools/quic/certs/out/leaf_cert.pem --key_file=net/tools/quic/certs/out/leaf_cert.pkcs8
 
 # quic client
 out/Debug/quic_client --host=10.10.1.1 --port=6121 --allow_unknown_root_cert https://www.example.org/
@@ -40,7 +45,12 @@ out/Debug/quic_client --host=10.10.1.1 --port=6121 --allow_unknown_root_cert htt
 
 Use Chromium as client
 
-Due to issue in running chromium --headless in VM with not display. Only selenium script is used.
+
+> Due to issue in running chromium --headless in VM with not display. Only selenium script is used.
+
+```bash
+out/Default/chrome  --no-sandbox --headless --disable-gpu --remote-debugging-port=9222  --user-data-dir=/tmp/chrome-profile  --ignore-certificate-errors-spki-list=$(cat net/tools/quic/certs/out/server_pub_spki.txt)  --no-proxy-server   --enable-quic   --origin-to-force-quic-on=www.example-quic.org:443   --host-resolver-rules='MAP www.example-quic.org:443 10.10.1.1:10001'
+```
 
 
 ## Building HTTPS server ( HTTP/2 , TLS, TCP )
@@ -87,18 +97,37 @@ Selenium to driver browser and Python scripts for everything else.
 
 ### HAR capturer
 
+AT Client side
+
 **Install**
 npm install -g chrome-har-capturer
 
 
+#### QUIC
+
 **Start chromium headless for quic**
 ```bash
-out/Default/chrome  --no-sandbox --headless --disable-gpu --remote-debugging-port=9222  --user-data-dir=/tmp/chrome-profile  --ignore-certificate-errors-spki-list=Tz6CyL8WC55nA6yDXagMahDsUFOBBA+slB7q3RphY88=  --no-proxy-server   --enable-quic   --origin-to-force-quic-on=www.examplequic.org:443   --host-resolver-rules='MAP www.examplequic.org:443 10.10.1.1:6121'
+out/Default/chrome  --no-sandbox --headless --disable-gpu --remote-debugging-port=9222  --user-data-dir=/tmp/chrome-profile  --ignore-certificate-errors-spki-list=$(cat net/tools/quic/certs/out/server_pub_spki.txt)  --no-proxy-server   --enable-quic   --origin-to-force-quic-on=www.example-quic.org:443   --host-resolver-rules='MAP www.example-quic.org:443 10.10.1.1:6121'
 ```
 
 **Get request using har-caturer**
 ```bash
-chrome-har-capturer --force --port 9222 -o test-quic.har https://www.examplequic.org
+chrome-har-capturer --force --port 9222 -o quic_index.har https://www.example-quic.org/
+- https://www.example-quic.org/ ✓
+```
+
+
+#### TCP
+
+**Start chromium headless for tcp**
+```bash
+out/Default/chrome  --no-sandbox --headless --disable-gpu --remote-debugging-port=9222  --user-data-dir=/tmp/chrome-profile --disk-cache-dir=/dev/null  --ignore-certificate-errors-spki-list=$(cat /proj/FEC-HTTP/long-quic/https/server_pub_spki.txt)  --no-proxy-server   --disable-quic   --origin-to-force-quic-on=www.example-tcp.org:8888   --host-resolver-rules='MAP www.example-tcp.org:8888 10.10.1.1:8000'
+```
+
+**Get request using har-caturer**
+```bash
+chrome-har-capturer --force --port 9222 -o tcp_index.har https://www.example-tcp.org:8888
+- https://www.example-tcp.org:8888/ ✓
 ```
 
 
