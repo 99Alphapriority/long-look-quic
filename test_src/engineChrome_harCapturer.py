@@ -12,7 +12,7 @@ browserLoadTimeout = 3*60
 def initialize():
     configs = Configs()
 
-    configs.set('waitBetweenLoads'  , 1)
+    configs.set('waitBetweenLoads'  , 2)
     configs.set('waitBetweenRounds' , 1)
     configs.set('rounds'            , 10)
     configs.set('pageLoadTimeout'   , 120)
@@ -88,11 +88,13 @@ def initialize():
                              '--enable-quic',
                              '--origin-to-force-quic-on={}:443'.format(configs.get('host')['quic']),
                              '--host-resolver-rules=MAP {}:443 {}:{}'.format(configs.get('host')['quic'], configs.get('quicServerIP'), configs.get('quicServerPort')),
+                             '--ignore-certificate-errors-spki-list=a7+zGcPMs2Ws+y+LHm9Y1UUiXQNRoVjUcAcsu+7RLeI=',
                              ],
                     
                     'https': [
                              '--disable-quic',
                              '--host-resolver-rules=MAP {}:443 {}:{}'.format(configs.get('host')['https'], configs.get('httpsServerIP'), configs.get('httpsServerPort')),
+                             '--ignore-certificate-errors-spki-list=5SqnBDsYKyH6GvRLlPRhOLXOeq0++PAtuMMSBYl3opI=',
                              ],               
                     }
     
@@ -124,7 +126,7 @@ class Driver(object):
         self.debugPort = debugPort
         cmd            = [browserPath] + options + ['--remote-debugging-port={}'.format(self.debugPort), '--randomID={}'.format(self.randomID)]
         self.process   = subprocess.Popen(cmd)
-        time.sleep(2)
+        time.sleep(3)
         
     # Closes browser    
     def close(self):
@@ -171,7 +173,10 @@ def main():
     chromeOptions = {}
 #     commonOptions = ['--no-first-run']
     commonOptions = [
-                        '--no-first-run'
+                        '--no-sandbox',
+                        '--headless',
+                        '--disable-gpu',
+                        '--no-first-run',
                         '--disable-background-networking', 
                         '--disable-client-side-phishing-detection', 
                         '--disable-component-update', 
@@ -232,11 +237,7 @@ def main():
             testID = '{}_{}'.format(case, round)
             PRINT_ACTION('Doing: {}/{}'.format(testID, configs.get('rounds')), 1, action=False)            
             
-            if case.startswith('quic') and (not (configs.get('against') == 'GAE')):
-                url = '{}://{}/{}'.format(methods[case], configs.get('host')[case], configs.get('testPage'), testID)
-            else:
-                url = '{}://{}/?page={}&testID={}'.format(methods[case], configs.get('host')[case], configs.get('testPage'), testID)
-            
+            url = '{}://{}/{}'.format(methods[case], configs.get('host')[case], configs.get('testPage'), testID)            
 
             # Do stats
             # Do TCP dump    
@@ -258,6 +259,7 @@ def main():
                 continue
             
             if configs.get('closeDrivers'):
+                PRINT_ACTION('Closing drivers', 0)
                 drivers[case].close()
              
             time.sleep(configs.get('waitBetweenLoads'))
