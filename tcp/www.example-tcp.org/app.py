@@ -54,6 +54,6 @@ def resource_1mbx1():
         return render_template('1mbx1.html', n=1)
 
 @app.route('/10mb')
-def resource_1mb():
+def resource_10mb():
         return render_template('10mb.html')
 
