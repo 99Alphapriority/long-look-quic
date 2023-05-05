@@ -6,7 +6,8 @@ import sys, os, time, json, subprocess, traceback, random, string
 from pythonLib import *
 from engineChrome import timeout, TimeoutError
 
-browserLoadTimeout = 3*60
+# This might timeout for large file (10mb) [default: 3*60]
+browserLoadTimeout = 100*60
 
 
 def initialize():
