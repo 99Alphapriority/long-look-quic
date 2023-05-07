@@ -2,8 +2,7 @@
 x-original-url: https://www.example-quic.org/files/100k.txt
 last-modified: Sat, 06 May 2023 19:48:04 GMT
 accept-ranges: bytes
-vary: Accept-Encoding
-content-encoding: gzip
+content-length: 102400
 cache-control: no-store,no-cache
 content-type: text/plain
 date: Sat, 06 May 2023 21:30:03 GMT

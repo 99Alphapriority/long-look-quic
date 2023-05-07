@@ -2,8 +2,7 @@
 x-original-url: https://www.example-quic.org/files/10k.txt
 last-modified: Sat, 06 May 2023 19:47:25 GMT
 accept-ranges: bytes
-vary: Accept-Encoding
-content-encoding: gzip
+content-length: 10240
 cache-control: no-store,no-cache
 content-type: text/plain
 date: Sat, 06 May 2023 21:29:59 GMT
