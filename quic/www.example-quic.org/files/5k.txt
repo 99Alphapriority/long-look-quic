@@ -1,17 +1,13 @@
-HTTP/1.1 200 OK
-Accept-Ranges: bytes
-Age: 575431
-Cache-Control: max-age=604800
-Content-Type: text/html; charset=UTF-8
-Date: Fri, 03 Mar 2023 20:47:13 GMT
-Etag: "3147526947"
-Expires: Fri, 10 Mar 2023 20:47:13 GMT
-Last-Modified: Thu, 17 Oct 2019 07:18:26 GMT
-Server: ECS (oxr/830D)
-X-Original-Url: https://www.example-quic.org/files/5k.txt
-Vary: Accept-Encoding
-X-Cache: HIT
-
+:status: 200
+x-original-url: https://www.example-quic.org/files/5k.txt
+last-modified: Sat, 06 May 2023 19:47:17 GMT
+accept-ranges: bytes
+vary: Accept-Encoding
+content-encoding: gzip
+cache-control: no-store,no-cache
+content-type: text/plain
+date: Sat, 06 May 2023 21:29:26 GMT
+server: quic_server/113 (Ubuntu)
 
 thId9whJacZ4dZyEZTg0i8OKoEsMrUyVRBBjfDrnHqmVQg+AETPeoBW3FbJifIYUb5nkP7pmBfLE
 trs6tkRezhzS5WSD4YQLgeTezQV1ldjqo759YnpqecQmqi1NF00/ESj0uErXbAQmhJ/2fd6Y0AM1
