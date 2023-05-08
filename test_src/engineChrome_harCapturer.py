@@ -6,8 +6,8 @@ import sys, os, time, json, subprocess, traceback, random, string
 from pythonLib import *
 from engineChrome import timeout, TimeoutError
 
-# This might timeout for large file (10mb) [default: 3*60]
-browserLoadTimeout = 100*60
+# This might timeout for large file (10mb) [default: 3*60, extreme: 100*60]
+browserLoadTimeout = 3*60
 
 
 def initialize():
@@ -57,6 +57,26 @@ def initialize():
         print('Test directory already exists! Use another name!')
         sys.exit()
     
+    # Add Cert SPKI 
+    quic_spki_file = "/proj/FEC-HTTP/long-quic/chromium/src/net/tools/quic/certs/out/server_pub_spki.txt"
+    if os.path.isfile(quic_spki_file):
+        with open(quic_spki_file, 'r') as file:
+            quic_spki = file.read()
+        configs.set('quic_spki', quic_spki)  
+    else:
+        print('QUIC server SPKI file does not exists!. Create SPKI using server public key ')
+        sys.exit()
+
+    tcp_spki_file = "/proj/FEC-HTTP/long-quic/apache-selfsigned-spki.txt"
+    if os.path.isfile(tcp_spki_file):
+        with open(tcp_spki_file, 'r') as file:
+            tcp_spki = file.read()
+        configs.set('tcp_spki', tcp_spki)  
+    else:
+        print('TCP server SPKI file does not exists!. Create SPKI using server public key')
+        sys.exit()
+
+
     #Creating the necessary directory hierarchy
     PRINT_ACTION('Creating the necessary directory hierarchy', 0)        
     testDir         = configs.get('testDir')
@@ -89,13 +109,13 @@ def initialize():
                              '--enable-quic',
                              '--origin-to-force-quic-on={}:443'.format(configs.get('host')['quic']),
                              '--host-resolver-rules=MAP {}:443 {}:{}'.format(configs.get('host')['quic'], configs.get('quicServerIP'), configs.get('quicServerPort')),
-                             '--ignore-certificate-errors-spki-list=a7+zGcPMs2Ws+y+LHm9Y1UUiXQNRoVjUcAcsu+7RLeI=',
+                             '--ignore-certificate-errors-spki-list={}'.format(configs.get('quic_spki')),
                              ],
                     
                     'https': [
                              '--disable-quic',
                              '--host-resolver-rules=MAP {}:443 {}:{}'.format(configs.get('host')['https'], configs.get('httpsServerIP'), configs.get('httpsServerPort')),
-                             '--ignore-certificate-errors-spki-list=5SqnBDsYKyH6GvRLlPRhOLXOeq0++PAtuMMSBYl3opI=',
+                             '--ignore-certificate-errors-spki-list={}'.format(configs.get('tcp_spki')),
                              ],               
                     }
     
