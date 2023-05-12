@@ -5,7 +5,9 @@ import pandas as pd
 import json
 
 obj_set1  = [ '5k.html', '10k.html', '100k.html', '200k.html', '500k.html', '1mb.html', '10mb.html',]  
-obj_set2  = [ '5kx200.html', '10kx100.html', '100kx10.html', '200kx5.html', '500kx2.html', '1mbx1.html',]  
+obj_set2  = [ '1mbx1.html','500kx2.html' ,'200kx5.html' ,'100kx10.html', '10kx100.html', '5kx200.html' ]  
+
+
 
 obj_names = obj_set1 + obj_set2
 
@@ -15,7 +17,7 @@ graph3 = ['10_36_1', '50_36_1', '100_36_1' ]
 
 settings = graph1 + graph2 + graph3
 
-setting = "10_36_0"
+setting = "100_36_0"
 cases = ["https", "quic"]
 total_runs = 10
 
@@ -23,7 +25,7 @@ print("Setting :", setting)
 https_obj_times = {}
 quic_obj_times = {}
 
-for obj in obj_set1:
+for obj in obj_set2:
     print("Object :", obj)
     times = { "https": [], "quic": []}
     for case in cases:
