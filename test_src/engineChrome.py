@@ -39,6 +39,46 @@ def timeout(seconds=10, error_message=os.strerror(errno.ETIME)):
 
     return decorator
 
+class TCPDUMP(object):
+    def start(self, outFile, interface=None, ports=None, hosts=None):
+        self.command = ['sudo', 'tcpdump', '-w', outFile]
+        
+        if interface:
+            self.command += ['-i', interface]
+        
+        if ports:
+            self.command += ['port', ports.pop()]
+            while ports:
+                self.command += ['or', 'port', ports.pop()]
+
+            if hosts:
+                self.command += ['and']
+        
+        if hosts:
+            self.command += ['host', hosts.pop()]
+            while hosts:
+                self.command += ['or', 'host', hosts.pop()]
+        
+        self.p  = subprocess.Popen(self.command)
+        
+        PRINT_ACTION('Sleeping 3 seconds so tcpdump starts', 0)
+        time.sleep(3)
+        
+        self.command = ' '.join(self.command)
+        
+        return self.command
+    
+    def stop(self):
+        '''
+        I cannot use subprocess kill because the process has started with sudo
+        Unless I change groups and users and stuff, I do need to run tcpdump
+        with sudo.
+        '''
+        
+        os.system('sudo pkill -f "{}"'.format(self.command))
+        time.sleep(3)
+
+
 class Driver(object):
     def __init__(self, chromeDriverPath, browserPath, options, pageLoadTimeOut=None):
         self.chromeDriverPath = chromeDriverPath
@@ -72,6 +112,34 @@ class Driver(object):
         self.driver.execute_script("return chrome.benchmarking.closeConnections();")
 
 
+def beforeExit(tcpdumpObj=None, drivers=None, modifyEtcHosts=None, logName=False, tcpprobePid=False):
+    
+    configs = Configs()
+    
+    #Killing TCPDUMP
+    if tcpdumpObj:
+        PRINT_ACTION('Killing TCPDUMP', 0)
+        if configs.get('tcpdump'):
+            tcpdumpObj.stop()
+     
+    #Asking remote host to stop QUIC server
+    
+    #Asking remote host to stop tcpProbe
+    
+    #Reverting modifications to /etc/hosts
+
+    #Closing drivers
+    if drivers:
+        PRINT_ACTION('Closing drivers', 0)
+        for case in drivers:
+            try:
+                drivers[case].close()
+            except TimeoutError:
+                print('Got stuck closing drivers! :-s')
+    
+    time.sleep(3)
+
+
 def initialize():
     configs = Configs()
 
@@ -81,6 +149,8 @@ def initialize():
     configs.set('pageLoadTimeout'   , 120)
 
     configs.set('tcpdump'           , False)
+    configs.set('separateTCPDUMPs'  , False)
+
     configs.set('runTcpProbe'       , False)
 
     configs.set('closeDrivers'      , True)
@@ -109,7 +179,7 @@ def initialize():
         configs.set('host', {'quic'         :'www.example-quic.org',
                              'https'        :'www.example-tcp.org',})
         
-    configs.check_for(['testDir', 'testPage'])
+    configs.check_for(['testDir', 'testPage', 'networkInt'])
     
     if configs.get('testDir').endswith('/'):
         configs.set( 'testDir', configs.get('testDir')[:-1] )

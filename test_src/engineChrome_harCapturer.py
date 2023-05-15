@@ -4,7 +4,7 @@ Description
 
 import sys, os, time, json, subprocess, traceback, random, string
 from pythonLib import *
-from engineChrome import initialize, timeout, TimeoutError
+from engineChrome import TCPDUMP, initialize, beforeExit, timeout, TimeoutError
 
 # This might timeout for large file (10mb) [default: 3*60, extreme: 100*60]
 browserLoadTimeout = 3*60
@@ -115,9 +115,17 @@ def main():
             print('Done')    
             
     # Starting TCPDUMP (Client side)
-
+    if configs.get('tcpdump'):
+        if configs.get('separateTCPDUMPs'):
+            tcpdumpObj = None
+        else:
+            PRINT_ACTION('Starting TCPDUMP', 0)
+            tcpdumpObj = TCPDUMP()
+            print(tcpdumpObj.start(tcpdumpFile, interface=configs.get('networkInt'), ports=['80', '443'], hosts=[configs.get("httpsServerIP")]))
 
     # Asking remote host to start QUIC server
+    logName     = False
+    tcpprobePid = False
 
         # Asking remote host to start runTcpProbe
 
@@ -135,7 +143,10 @@ def main():
 
             # Do stats
             # Do TCP dump    
-
+            if configs.get('separateTCPDUMPs') and configs.get('tcpdump'):
+                tcpdumpFile = '{}/{}_{}_tcpdump.pcap'.format(tcpdumpDir, os.path.basename(testDir), testID)
+                tcpdumpObj  = TCPDUMP()
+                tcpdumpObj.start(tcpdumpFile, interface=configs.get('networkInt'), ports=['80', '443'], hosts=[configs.get("httpsServerIP")])
 
             if configs.get('closeDrivers'):
                 PRINT_ACTION('Opening driver: '+ testID, 2, action=False)
@@ -152,6 +163,11 @@ def main():
                 traceback.print_exc()
                 continue
             
+            if configs.get('separateTCPDUMPs') and configs.get('tcpdump'):
+                tcpdumpObj.stop()
+
+            # Save stats
+
             if configs.get('closeDrivers'):
                 PRINT_ACTION('Closing drivers', 0)
                 drivers[case].close()
@@ -163,17 +179,13 @@ def main():
             time.sleep(configs.get('waitBetweenRounds'))
             
     PRINT_ACTION('Running final beforeExit ...', 0)
-
-    #Closing drivers
-    if drivers:
-        PRINT_ACTION('Closing drivers', 0)
-        for case in drivers:
-            try:
-                drivers[case].close()
-            except TimeoutError:
-                print('Got stuck closing drivers! :-s')
+    # Stop background pings
+    if configs.get('closeDrivers'):
+        drivers=None
+    if configs.get('separateTCPDUMPs'):
+        tcpdumpObj=None
+    beforeExit(tcpdumpObj=tcpdumpObj, drivers=drivers, modifyEtcHosts=None, logName=logName, tcpprobePid=tcpprobePid)
     
-    time.sleep(3)
 
 if __name__=="__main__":
     main()    
