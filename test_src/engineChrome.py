@@ -148,8 +148,8 @@ def initialize():
     configs.set('rounds'            , 10)
     configs.set('pageLoadTimeout'   , 120)
 
-    configs.set('tcpdump'           , False)
-    configs.set('separateTCPDUMPs'  , False)
+    configs.set('tcpdump'           , True)
+    configs.set('separateTCPDUMPs'  , True)
 
     configs.set('runTcpProbe'       , False)
 
