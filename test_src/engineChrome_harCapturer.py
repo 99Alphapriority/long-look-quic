@@ -104,8 +104,10 @@ def main():
         chromeOptions[case] = []
         unCommonOptions     = ['--user-data-dir={}/{}'.format(userDirs, case),
                                '--data-path={}/{}'.format(dataPaths, case),
-                               '--log-net-log={}/{}.json'.format(netLogs, case),
                                ]
+        
+        if configs.get('logNetlog'):
+            unCommonOptions += ['--log-net-log={}/{}.json'.format(netLogs, case),]
          
         chromeOptions[case] = uniqeOptions[case] + commonOptions + unCommonOptions
         

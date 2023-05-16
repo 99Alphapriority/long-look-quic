@@ -148,10 +148,13 @@ def initialize():
     configs.set('rounds'            , 10)
     configs.set('pageLoadTimeout'   , 120)
 
-    configs.set('tcpdump'           , True)
-    configs.set('separateTCPDUMPs'  , True)
+    # Debug files
+    configs.set('tcpdump'           , False)
+    configs.set('separateTCPDUMPs'  , False)
 
     configs.set('runTcpProbe'       , False)
+
+    configs.set('logNetlog'       , False)
 
     configs.set('closeDrivers'      , True)
     configs.set('clearCacheConns'   , True)
