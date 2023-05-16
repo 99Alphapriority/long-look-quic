@@ -79,6 +79,7 @@ class TCPDUMP(object):
         time.sleep(3)
 
 
+# SELENIUM version of Driver class. (Not used due to lack of detailed timings)
 class Driver(object):
     def __init__(self, chromeDriverPath, browserPath, options, pageLoadTimeOut=None):
         self.chromeDriverPath = chromeDriverPath

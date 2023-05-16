@@ -1,5 +1,6 @@
 import subprocess, configparser, sys
 
+# This TCP dump function not used
 class TCPDump(object):
     def __init__(self, outFile, interface='en0', bufferSize=131072, host=None):
         self.interface  = interface
