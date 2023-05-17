@@ -135,6 +135,7 @@ def beforeExit(tcpdumpObj=None, drivers=None, modifyEtcHosts=None, logName=False
         for case in drivers:
             try:
                 drivers[case].close()
+                print("Close Driver Success")
             except TimeoutError:
                 print('Got stuck closing drivers! :-s')
     
@@ -157,7 +158,7 @@ def initialize():
 
     configs.set('logNetlog'       , False)
 
-    configs.set('closeDrivers'      , True)
+    configs.set('closeDrivers'      , False)
     configs.set('clearCacheConns'   , True)
 
     configs.set('browserPath'       , False)
@@ -260,11 +261,10 @@ def initialize():
     
     try:
         configs.get('quic-version')
-        uniqeOptions['quic'].append( '--quic-version=QUIC_VERSION_{}'.format(configs.get('quic-version')) )
-        uniqeOptions['quic-proxy'].append( '--quic-version=QUIC_VERSION_{}'.format(configs.get('quic-version')) )
-        uniqeOptions['quic-proxy-mobile'].append( '--quic-version=QUIC_VERSION_{}'.format(configs.get('quic-version')) )
+        uniqeOptions['quic'].append( '--quic-version={}'.format(configs.get('quic-version')) )
     except KeyError:
-        pass
+        print("quic-version Not found")
+        sys.exit()
     
     
     dIPs = {'quic'          : configs.get('quicServerIP'),

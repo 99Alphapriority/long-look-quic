@@ -124,6 +124,8 @@ def main():
             PRINT_ACTION('Starting TCPDUMP', 0)
             tcpdumpObj = TCPDUMP()
             print(tcpdumpObj.start(tcpdumpFile, interface=configs.get('networkInt'), ports=['80', '443'], hosts=[configs.get("httpsServerIP")]))
+    else:
+        tcpdumpObj = None
 
     # Asking remote host to start QUIC server
     logName     = False

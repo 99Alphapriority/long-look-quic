@@ -9,9 +9,8 @@ from doDummyStuff import DummyNet
 obj_set1  = [ '5k.html', '10k.html', '100k.html', '200k.html', '500k.html', '1mb.html', '10mb.html',]  
 obj_set2  = [ '1mbx1.html','500kx2.html' ,'200kx5.html' ,'100kx10.html', '10kx100.html', '5kx200.html' ]  
 
-graph1 = [ '10_36_0', '50_36_0', '100_36_0' ]
-graph2 = ['10_112_0', '50_112_0', '100_112_0']
-graph3 = ['10_36_1', '50_36_1', '100_36_1' ]
+ratesX = "10_36_0,50_36_0,100_36_0,10_112_0,50_112_0,100_112_0,10_36_1,50_36_1,100_36_1"
+indexX = "5k,10k,100k,200k,500k,1mb,10mb,1mbx1,500kx2,200kx5,100kx10,10kx100,5kx200"
 
 # Configs for running experiments , 
 # different from configs controlling chrome options, servers etc
@@ -21,15 +20,18 @@ def initialize():
     configs.set('project', 'FEC-HTTP')
     configs.set('experiment', 'Q043')
 
-    configs.set('rates'             ,  "10_36_1, 50_36_0")
+    configs.set('pythonBinary', '/proj/FEC-HTTP/nenv/bin/python')
+    configs.set('mainDir', '')
+
+    configs.set('rates'             ,  "10_36_0,50_36_0,100_36_0,10_112_0,50_112_0,100_112_0,10_36_1,50_36_1,100_36_1")
     # configs.set('qualities'         , 'hd2160,hd1440,hd1080,hd720,large,medium,small,tiny,auto')
     configs.set('stopTime'          , '60')
-    configs.set('indexes'           , "5k.html, 10k.html, 100k.html, 200k.html, 500k.html, 1mb.html, 10mb.html")
+    configs.set('indexes'           , "5k,10k,100k,200k,500k,1mb,10mb,1mbx1,500kx2,200kx5,100kx10,10kx100,5kx200")
     configs.set('networkInt'        , 'eth0')
     configs.set('rounds'            , 20)
     configs.set('tcpdump'           , False)
     configs.set('doSideTraffic'     , False)
-    configs.set('runQUICserver'     , True)
+    configs.set('runQUICserver'     , False)
     configs.set('runTcpProbe'       , False)
     configs.set('doJitter'          , False)
     configs.set('doIperf'           , True)
@@ -72,33 +74,38 @@ def run(configs, link):
 
         link.show()
 
-        # # Create Directory
-        # dirName = '_'.join( map(str, [configs.get('testDir'), configs.get('latency'), configs.get('burst')]))
+        # Create Directory
+        dirName = rate
+        print('Creating directory')
+        os.system('mkdir -p {}/{}'.format(configs.get('mainDir'), dirName))
 
-
-        # # Run network tests
-        # if configs.get('doIperf'):
-        #     print('Running iperf ...')
-        #     if configs.get('against') == 'emulab':
-        #         # iperfServer = "[iPerf should be running on the same host as QUIC/HTTPS server]"
-        #         iperfServer = "192.168.1.1"
-        #     print('./do_iperf.sh {} {}'.format(dirName, iperfServer))
-        #     os.system('./do_iperf.sh {} {}'.format(dirName, iperfServer))
+        # Run network tests
+        if configs.get('doIperf'):
+            print('Running iperf ...')
+            if configs.get('against') == 'emulab':
+                # iperfServer = "[iPerf should be running on the same host as QUIC/HTTPS server]"
+                iperfServer = "192.168.1.1"
+            print('./do_iperf.sh {}/{}/ {}'.format(configs.get('mainDir'), dirName, iperfServer))
+            os.system('./do_iperf.sh {}/{}/ {}'.format(configs.get('mainDir'), dirName, iperfServer))
         
-        # if configs.get('doPing'):
-        #     print('Running pings ...')
-        #     if configs.get('against') == 'emulab':
-        #         # pingServer = "[QUIC/HTTPS server host address]"
-        #         pingServer = "192.168.1.1"
-        #     print('./do_ping.sh {} {}'.format(dirName, pingServer))
-        #     os.system('./do_ping.sh {} {}'.format(dirName, pingServer))
+        if configs.get('doPing'):
+            print('Running pings ...')
+            if configs.get('against') == 'emulab':
+                # pingServer = "[QUIC/HTTPS server host address]"
+                pingServer = "192.168.1.1"
+            print('./do_ping.sh {}/{}/ {}'.format(configs.get('mainDir') , dirName, pingServer))
+            os.system('./do_ping.sh {}/{}/ {}'.format(configs.get('mainDir'), dirName, pingServer))
 
-        # # Run benchmark scripts
-        # for index in configs.get('indexes').split(','):
-        #     cmd  = '{} python {} {}'.format(configs.get('xvfb-run'), configs.get('script2run'), configs.serializeConfigs(exclude=['rates', 'testDir', 'qualities', 'indexes']))
-        #     cmd += '--testDir={}/{} --testPage=index_{}.html'.format(dirName, index, index)
-        #     print('\tThe command:\n\t', cmd)
-        #     os.system(cmd)
+        # Run benchmark scripts
+        for index in configs.get('indexes').split(','):
+            cmd  = '{} {} '.format(configs.get('pythonBinary'), configs.get('script2run'))
+            cmd += '--against={} --networkInt={} '.format(configs.get('against'), configs.get('networkInt'))
+            cmd += '--browserPath={} --quic-version={} '.format(configs.get('browserPath'), configs.get('quic-version') )
+            cmd += '--mainDir={} '.format(configs.get('mainDir'))
+            cmd += '--testDir={}/{}_html --testPage={}.html '.format(dirName, index, index)
+            cmd += '--rounds={} '.format(configs.get('rounds'))
+            print('\tThe command:\n\t', cmd)
+            os.system(cmd)
 
         link.remove()
         print()        
@@ -106,7 +113,6 @@ def run(configs, link):
 def main():
     PRINT_ACTION('Reading configs file and args', 0)
     configs = initialize()
-
     link = DummyNet(configs.get('project'), configs.get('experiment'), "link_bridge")
 
     PRINT_ACTION('Running...', 0)
