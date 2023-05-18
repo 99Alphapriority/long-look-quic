@@ -20,10 +20,10 @@ settings = graph1 + graph2 + graph3
 # X_36_0, X_36_1, X_112_0
 setting = "X_112_0"
 # Q043, v1 ,v2
-mainDir = "../data/resultsvQ043/"
+mainDir = "../data/JitterResultsvQ043/"
 objs = obj_set2
 ###
-total_runs = 20
+total_runs = 10
 
 cases = ["https", "quic"]
 

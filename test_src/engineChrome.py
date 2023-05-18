@@ -261,7 +261,7 @@ def initialize():
     
     try:
         configs.get('quic-version')
-        uniqeOptions['quic'].append( '--quic-version={}'.format(configs.get('quic-version')) )
+        uniqeOptions['quic'].append('--quic-version={}'.format(configs.get('quic-version')) )
     except KeyError:
         print("quic-version Not found")
         sys.exit()

@@ -2,7 +2,7 @@
 
 '''
 
-import sys, os, multiprocessing
+import sys, os, multiprocessing, time
 from pythonLib import *
 from doDummyStuff import DummyNet
 
@@ -23,7 +23,7 @@ def initialize():
     configs.set('pythonBinary', '/proj/FEC-HTTP/nenv/bin/python')
     configs.set('mainDir', '')
 
-    configs.set('rates'             ,  "10_36_0,50_36_0,100_36_0,10_112_0,50_112_0,100_112_0,10_36_1,50_36_1,100_36_1")
+    configs.set('rates'             ,  "10_112_0,50_112_0,100_112_0")
     # configs.set('qualities'         , 'hd2160,hd1440,hd1080,hd720,large,medium,small,tiny,auto')
     configs.set('stopTime'          , '60')
     configs.set('indexes'           , "5k,10k,100k,200k,500k,1mb,10mb,1mbx1,500kx2,200kx5,100kx10,10kx100,5kx200")
@@ -67,19 +67,33 @@ def run(configs, link):
         print("Delay :", delay)
         print("Loss :", plr)
 
-        # Do traffic shaping
+        ### Do traffic shaping ###
         link.show()
 
+        # Add shapping paramters uniformly for up and down links
+        # Bandwidth (bw) : Same bw is applied for both up and down links
+        # DELAY : Delay is halved and applied for both up and down links
+        # PLR : Loss from range (0-1) [meaning 0-100%] is applies for both links
         link.add(bw, (delay/2), (plr/100))
 
         link.show()
 
-        # Create Directory
+        if configs.get('doJitter'):
+            # Do Jitter
+            # Do in Link node
+            print("Start Jitter Scipt in Link Node ")
+            print("Waiting 30 secs for script to start manually")
+            print("Make sure same BandWidth is used")
+            print("Settings :", rate)
+            time.sleep(30)
+
+
+        ### Create Directory ###
         dirName = rate
         print('Creating directory')
         os.system('mkdir -p {}/{}'.format(configs.get('mainDir'), dirName))
 
-        # Run network tests
+        ### Run network tests ###
         if configs.get('doIperf'):
             print('Running iperf ...')
             if configs.get('against') == 'emulab':
@@ -96,7 +110,7 @@ def run(configs, link):
             print('./do_ping.sh {}/{}/ {}'.format(configs.get('mainDir') , dirName, pingServer))
             os.system('./do_ping.sh {}/{}/ {}'.format(configs.get('mainDir'), dirName, pingServer))
 
-        # Run benchmark scripts
+        ### Run benchmark scripts ###
         for index in configs.get('indexes').split(','):
             cmd  = '{} {} '.format(configs.get('pythonBinary'), configs.get('script2run'))
             cmd += '--against={} --networkInt={} '.format(configs.get('against'), configs.get('networkInt'))
@@ -107,6 +121,7 @@ def run(configs, link):
             print('\tThe command:\n\t', cmd)
             os.system(cmd)
 
+        ### Clear network settings and stop process ###
         link.remove()
         print()        
 
