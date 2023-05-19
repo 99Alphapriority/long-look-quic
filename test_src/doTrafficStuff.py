@@ -1,5 +1,7 @@
 '''
-Script modified to work for dummynet commands
+Script modified to work for 
+Dummynet commands on Link Bridge Node
+TC commands on Local (client) node
 '''
 
 import sys, os, random, time, multiprocessing, subprocess
@@ -106,6 +108,81 @@ class DummyNet(object):
             prevDelayDown = delayDown
             prevDelayUp   = delayUp         
 
+
+class TC(object):
+    def __init__(self, interface, ifb='ifb0'):
+        self.interface = interface
+        self.ifb = ifb
+
+    def show(self):
+        print('TC on {}: '.format("Local"))
+        os.system('sudo tc qdisc show')
+
+    def addIngressInterface(self):
+        print('Adding IFB Ingress Interface ...')
+        os.system('sudo modprobe ifb numifbs=1')
+        os.system('sudo ip link set dev {} up'.format(self.ifb))
+        os.system('sudo tc qdisc add dev {} handle ffff: ingress'.format(self.interface))
+        os.system('sudo tc filter add dev {} parent ffff: protocol ip u32 match u32 0 0 action mirred egress redirect dev {}'.format(self.interface, self.ifb))
+
+    def remove(self):
+        print('Removing current tc stuff on {}...'.format("Local"))
+        os.system('sudo tc qdisc del dev {} handle ffff: ingress'.format( self.interface ))
+        os.system('sudo tc qdisc del dev {} root'.format( self.interface ))
+        os.system('sudo tc qdisc del dev {} root'.format( self.ifb ))
+        os.system('sudo ip link set dev {} down'.format( self.ifb ))
+
+    def doDelay(self, delayArgsDown, delayArgsUp):
+        self.remove()
+        self.addIngressInterface()
+        
+        os.system('sudo tc qdisc add dev {} root netem delay {}ms'.format(self.interface, delayArgsUp))
+        os.system('sudo tc qdisc add dev {} root netem delay {}ms'.format(self.ifb      , delayArgsDown))
+
+    def changeDelay(self, delayDown, delayUp, parent='', handle=''):
+        if parent:
+            parent = 'parent {}'.format(parent)
+        if handle:
+            handle = 'handle {}'.format(handle)
+        if (not parent) and (not handle):
+            parent = 'root'
+        
+        os.system('sudo tc qdisc change dev {} {} {} netem delay {}ms'.format(self.interface, parent, handle, delayUp ))
+        os.system('sudo tc qdisc change dev {} {} {} netem delay {}ms'.format(self.ifb      , parent, handle, delayDown ))
+
+    def addJitter(self, baseDelayDown, varDelayDown, baseDelayUp, varDelayUp, interval=0.1):
+        counter       =  0
+        prevDelayDown = -1
+        prevDelayUp   = -1
+
+        while True:
+            counter += 1
+            if baseDelayDown == 0:
+                delayDown = 0
+            else:
+                delayDown = random.randrange(baseDelayDown-varDelayDown, baseDelayDown+varDelayDown)
+            if baseDelayUp == 0:
+                delayUp = 0
+            else:
+                delayUp   = random.randrange(baseDelayUp-varDelayUp, baseDelayUp+varDelayUp)
+                    
+            if (delayDown < prevDelayDown) or (delayUp < prevDelayUp):
+                steps = 2
+                gapDown = prevDelayDown - delayDown
+                gapUp   = prevDelayUp   - delayUp
+                
+                for i in range(1, steps+1):
+                    tmpDelayDown = prevDelayDown - i*gapDown/steps
+                    tmpDelayUp   = prevDelayUp - i*gapUp/steps
+                    
+                    self.changeDelay( tmpDelayDown, tmpDelayUp )
+                    time.sleep(interval/steps)
+            else:
+                self.changeDelay( delayDown, delayUp) 
+                time.sleep(interval)
+            
+            prevDelayDown = delayDown
+            prevDelayUp   = delayUp
 
 def main():
     
