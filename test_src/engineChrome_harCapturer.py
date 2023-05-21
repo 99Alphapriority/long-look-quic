@@ -152,7 +152,7 @@ def main():
                 tcpdumpObj  = TCPDUMP()
                 if case == 'https':
                     tcpdumpObj.start(tcpdumpFile, interface=configs.get('networkInt'), ports=[configs.get("httpsServerPort")], hosts=[configs.get("httpsServerIP")])
-                else if case == 'quic':
+                elif case == 'quic':
                     tcpdumpObj.start(tcpdumpFile, interface=configs.get('networkInt'), ports=[configs.get("quicServerPort")], hosts=[configs.get("quicServerIP")])
                 else: # generic capturing
                     tcpdumpObj.start(tcpdumpFile, interface=configs.get('networkInt'), ports=['80', '443'], hosts=[configs.get("httpsServerIP")])
