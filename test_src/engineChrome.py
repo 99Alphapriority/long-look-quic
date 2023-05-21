@@ -184,7 +184,7 @@ def initialize():
         configs.set('host', {'quic'         :'www.example-quic.org',
                              'https'        :'www.example-tcp.org',})
         
-    configs.check_for(['testDir', 'testPage', 'networkInt'])
+    configs.check_for(['testDir', 'testPage', 'networkInt', 'quic-version'])
     
     if configs.get('testDir').endswith('/'):
         configs.set( 'testDir', configs.get('testDir')[:-1] )
