@@ -1,3 +1,6 @@
 **/__pycache__
 */tmp/*
+# Test results
 data/*
+# Large Image files
+**/210mb.jpg
