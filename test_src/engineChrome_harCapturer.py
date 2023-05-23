@@ -91,8 +91,8 @@ def main():
         commonOptions += ['--enable-benchmarking', '--enable-net-benchmarking']    
 
     debugPorts = {
-                'https'       : '9221',
-                'quic'        : '9222',
+                'https'       : str(configs.get('httpsDebugPort')),
+                'quic'        : str(configs.get('quicDebugPort')),
                 }
 
     #Creating driver instances and modifying /etc/hosts

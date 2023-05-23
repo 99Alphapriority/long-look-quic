@@ -170,6 +170,9 @@ def initialize():
     configs.set('httpsServerIP'     , "192.168.1.1")
     configs.set('httpsServerPort'     , "443")
 
+    configs.set('quicDebugPort'    , "9222")
+    configs.set('httpsDebugPort'     , "9221")
+
 
     configs.set('cases'             , 'https,quic')
 
