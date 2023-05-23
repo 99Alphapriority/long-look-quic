@@ -123,7 +123,7 @@ def main():
         else:
             PRINT_ACTION('Starting TCPDUMP', 0)
             tcpdumpObj = TCPDUMP()
-            print(tcpdumpObj.start(tcpdumpFile, interface=configs.get('networkInt'), ports=['80', '443'], hosts=[configs.get("httpsServerIP")]))
+            print(tcpdumpObj.start(tcpdumpFile, interface=configs.get('networkInt'), ports=[configs.get("httpsServerPort"), configs.get("quicServerPort")], hosts=[configs.get("httpsServerIP")]))
     else:
         tcpdumpObj = None
 
@@ -155,7 +155,7 @@ def main():
                 elif case == 'quic':
                     tcpdumpObj.start(tcpdumpFile, interface=configs.get('networkInt'), ports=[configs.get("quicServerPort")], hosts=[configs.get("quicServerIP")])
                 else: # generic capturing
-                    tcpdumpObj.start(tcpdumpFile, interface=configs.get('networkInt'), ports=['80', '443'], hosts=[configs.get("httpsServerIP")])
+                    tcpdumpObj.start(tcpdumpFile, interface=configs.get('networkInt'), ports=[configs.get("httpsServerPort"), configs.get("quicServerPort")], hosts=[configs.get("httpsServerIP")])
 
             if configs.get('closeDrivers'):
                 PRINT_ACTION('Opening driver: '+ testID, 2, action=False)
