@@ -49,6 +49,15 @@ class DummyNet(object):
         os.system("{} {}".format(self.sshNode, dummyCmd1))
         os.system("{} {}".format(self.sshNode, dummyCmd2))
 
+    # For variable bandwitdh
+    def changeBW_linkbridge(self, what, delay, baseBW, varBW, sleep):
+        if what == 'start':
+            dummyCmd = 'python bandwidth_oscillator_on_linkbridge.py  {} {} {} {} {} {}'.format(self.pipe1, self.pipe2, delay, baseBW, varBW, sleep)
+            os.system("{} {}", self.sshNode, dummyCmd)
+        if what == 'stop':
+            # Testing kill command
+            pass
+
     # Performa Jitter locally on link_bridge 
     # to achieve high frequency change in latency 
     def addJitter(self, bw, baseDelayDown, varDelayDown, baseDelayUp, varDelayUp, interval=0.1):
