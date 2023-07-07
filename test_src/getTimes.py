@@ -3,11 +3,12 @@ import scipy.stats as stats
 import numpy as np
 import pandas as pd
 import json
+from pprint import pprint
 
 obj_set1  = [ '5k.html', '10k.html', '100k.html', '200k.html', '500k.html', '1mb.html', '10mb.html',]  
 obj_set2  = [ '1mbx1.html','500kx2.html' ,'200kx5.html' ,'100kx10.html', '10kx100.html', '5kx200.html' ]  
 
-
+obj_set3 = [ '5k.jpg', '10k.jpg', '100k.jpg', '200k.jpg', '500k.jpg', '1mb.jpg', '10mb.jpg',] 
 
 obj_names = obj_set1 + obj_set2
 
@@ -17,13 +18,15 @@ graph3 = ['10_36_1', '50_36_1', '100_36_1' ]
 
 settings = graph1 + graph2 + graph3
 ### Chaning
+# Q043, v1 ,v2
+mainDir = "../data/tcpBBR_quicV1BBR/"
+### TIMES run
+total_runs = 20
 # X_36_0, X_36_1, X_112_0
 setting = "X_112_0"
-# Q043, v1 ,v2
-mainDir = "../data/JitterResultsvQ043/"
+# Objs
 objs = obj_set2
-###
-total_runs = 10
+#####
 
 cases = ["https", "quic"]
 
@@ -60,7 +63,7 @@ for bw in [10,50,100]:
         quic_group2 = np.array(times["quic"])
 
         # Print the variance of both data groups
-        # print(np.var(https_group1), np.var(quic_group2))
+        print(np.std(https_group1), np.std(quic_group2))
 
         # Calculate Stats and P-value of both data groups
         welch_test = stats.ttest_ind(https_group1, quic_group2, equal_var=False)
@@ -88,9 +91,17 @@ for bw in [10,50,100]:
     tcp_df.loc[len(tcp_df)] = https_obj_times
     quic_df.loc[len(quic_df)] = quic_obj_times
 
+print("QUIC Version : ", mainDir)
 print("Setting :", setting)
+print("Total Runs :", total_runs)
 print("TCP Times")
 print(tcp_df)
 print()
+pprint(tcp_df.to_string(header=False, index=False).split('\n'))
+
+print()
 print("QUIC Times")
 print(quic_df)
+print()
+pprint(quic_df.to_string(header=False, index=False).split('\n'))
+
