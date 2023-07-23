@@ -63,7 +63,7 @@ for bw in [10,50,100]:
         quic_group2 = np.array(times["quic"])
 
         # Print the variance of both data groups
-        print(np.std(https_group1), np.std(quic_group2))
+        print("TCP PLT Std: ", np.std(https_group1),"\t QUIC PLT Std :", np.std(quic_group2))
 
         # Calculate Stats and P-value of both data groups
         welch_test = stats.ttest_ind(https_group1, quic_group2, equal_var=False)
