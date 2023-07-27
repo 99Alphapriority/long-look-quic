@@ -10,7 +10,12 @@ obj_set1  = [ '5k.html', '10k.html', '100k.html', '200k.html', '500k.html', '1mb
 obj_set2  = [ '1mbx1.html','500kx2.html' ,'200kx5.html' ,'100kx10.html', '10kx100.html', '5kx200.html' ]  
 
 # all rates (scenarios)
+# 10_36_1 => 10 Mbits/s , 36 ms RTT , 1% loss
+# 100_100J10_0 => 100 Mbits/s, 100ms RTT with 10 ms jitter , 0% loss    ( Latency is varied on local interface to avoid delay )
+# 50V150_36_0 => Varying bandwith from 50 Mbits/s to 150 Mbits/s  , 36ms RTT, 0% loss ( Bandwidth is varied in link Bridge to avoid delay [Not Automated])
 ratesX = "10_36_0,50_36_0,100_36_0,10_112_0,50_112_0,100_112_0,10_36_1,50_36_1,100_36_1,10_100J10_0,50_100J10_0,100_100J10_0"
+
+# All objects
 indexX = "5k,10k,100k,200k,500k,1mb,10mb,1mbx1,500kx2,200kx5,100kx10,10kx100,5kx200"
 
 # Configs for running experiments , 
@@ -27,6 +32,7 @@ def initialize():
     configs.set('rates'             ,  "10_36_0,50_36_0,100_36_0,10_112_0,50_112_0,100_112_0,10_36_1,50_36_1,100_36_1")
     # configs.set('qualities'         , 'hd2160,hd1440,hd1080,hd720,large,medium,small,tiny,auto')
     configs.set('stopTime'          , '60')
+    # 
     configs.set('indexes'           , "5k,10k,100k,200k,500k,1mb,10mb,1mbx1,500kx2,200kx5,100kx10,10kx100,5kx200")
     configs.set('networkInt'        , 'eth0')
     configs.set('rounds'            , 20)
@@ -143,6 +149,8 @@ def run(configs, link, tc):
             cmd += '--browserPath={} --quic-version={} '.format(configs.get('browserPath'), configs.get('quic-version') )
             cmd += '--mainDir={} '.format(configs.get('mainDir'))
             cmd += '--testDir={}/{}_html --testPage={}.html '.format(dirName, index, index)
+            # for static image objects
+            # cmd += '--testDir={}/{}_jpg --testPage=static/{}.jpg '.format(dirName, index, index)
             cmd += '--rounds={} '.format(configs.get('rounds'))
             print('\tThe command:\n\t', cmd)
             os.system(cmd)
