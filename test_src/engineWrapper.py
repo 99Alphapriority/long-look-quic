@@ -13,6 +13,7 @@ obj_set2  = [ '1mbx1.html','500kx2.html' ,'200kx5.html' ,'100kx10.html', '10kx10
 # 10_36_1 => 10 Mbits/s , 36 ms RTT , 1% loss
 # 100_100J10_0 => 100 Mbits/s, 100ms RTT with 10 ms jitter , 0% loss    ( Latency is varied on local interface to avoid delay )
 # 50V150_36_0 => Varying bandwith from 50 Mbits/s to 150 Mbits/s  , 36ms RTT, 0% loss ( Bandwidth is varied in link Bridge to avoid delay [Not Automated])
+## BUG in config.read_args when just one --rates="100_36_1" is given . It takes as 100361 . so give min 2 "100_36_1,50_36_1"
 ratesX = "10_36_0,50_36_0,100_36_0,10_112_0,50_112_0,100_112_0,10_36_1,50_36_1,100_36_1,10_100J10_0,50_100J10_0,100_100J10_0"
 
 # All objects
@@ -125,6 +126,10 @@ def run(configs, link, tc):
         print('Creating directory')
         os.system('mkdir -p {}/{}'.format(configs.get('mainDir'), dirName))
 
+        ### Save System Info ###
+        print('./do_sysinfo.sh {}/{}/ {}'.format(configs.get('mainDir'), dirName, iperfServer))
+        os.system('./do_sysinfo.sh {}/{}/ {}'.format(configs.get('mainDir'), dirName, iperfServer))        
+
         ### Run network tests ###
         if configs.get('doIperf'):
             print('Running iperf ...')
@@ -148,6 +153,7 @@ def run(configs, link, tc):
             cmd += '--against={} --networkInt={} '.format(configs.get('against'), configs.get('networkInt'))
             cmd += '--browserPath={} --quic-version={} '.format(configs.get('browserPath'), configs.get('quic-version') )
             cmd += '--mainDir={} '.format(configs.get('mainDir'))
+            # for html pages
             cmd += '--testDir={}/{}_html --testPage={}.html '.format(dirName, index, index)
             # for static image objects
             # cmd += '--testDir={}/{}_jpg --testPage=static/{}.jpg '.format(dirName, index, index)
