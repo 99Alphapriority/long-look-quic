@@ -200,8 +200,8 @@ def initialize():
         print('Test directory already exists! Use another name!')
         sys.exit()
     
-    # Add Cert SPKI 
-    quic_spki_file = "/proj/FEC-HTTP/long-quic/chromium/src/net/tools/quic/certs/out/server_pub_spki.txt"
+    # Add Cert SPKI , Needed for Modern Chrome Browsers
+    quic_spki_file = "/proj/FEC-HTTP/long-quic/long-look-quic/quic/out/server_pub_spki.txt"
     if os.path.isfile(quic_spki_file):
         with open(quic_spki_file, 'r') as file:
             quic_spki = file.read()

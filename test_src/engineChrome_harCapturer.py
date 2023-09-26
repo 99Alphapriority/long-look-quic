@@ -68,7 +68,6 @@ def main():
 #     commonOptions = ['--no-first-run']
     commonOptions = [
                         '--no-sandbox',
-                        '--headless',
                         '--disable-gpu',
                         '--no-first-run',
                         '--disable-background-networking', 
@@ -87,6 +86,11 @@ def main():
                         '--ignore-certificate-errors'
                     ] 
     
+    # if Not using xvfb-run , Then use  chrome headless mode
+    # Old chrome and chrome-har-capturer doesn't work well
+    if not configs.get('xvfb'):
+        commonOptions += ['--headless']
+
     if configs.get('clearCacheConns'):
         commonOptions += ['--enable-benchmarking', '--enable-net-benchmarking']    
 

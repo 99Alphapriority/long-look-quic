@@ -5,10 +5,11 @@ import pandas as pd
 import json
 from pprint import pprint
 
-obj_set1  = [ '5k.html', '10k.html', '100k.html', '200k.html', '500k.html', '1mb.html', '10mb.html',]  
+# obj_set1  = [ '5k.html', '10k.html', '100k.html', '200k.html', '500k.html', '1mb.html', '10mb.html',]  
+obj_set1  = ['10kx100.html']
 obj_set2  = [ '1mbx1.html','500kx2.html' ,'200kx5.html' ,'100kx10.html', '10kx100.html', '5kx200.html' ]  
 
-obj_set3 = [ '5k.jpg', '10k.jpg', '100k.jpg', '200k.jpg', '500k.jpg', '1mb.jpg', '10mb.jpg',] 
+# obj_set3 = [ '5k.jpg', '10k.jpg', '100k.jpg', '200k.jpg', '500k.jpg', '1mb.jpg', '10mb.jpg',]  
 
 obj_names = obj_set1 + obj_set2
 
@@ -17,15 +18,15 @@ graph2 = ['10_112_0', '50_112_0', '100_112_0']
 graph3 = ['10_36_1', '50_36_1', '100_36_1' ]
 
 settings = graph1 + graph2 + graph3
-### Chaning
+### Changing
 # Q043, v1 ,v2
-mainDir = "../data/tcpBBR_quicV1BBR/"
+mainDir = "../data/IMC23_beforetuning/"
 ### TIMES run
-total_runs = 20
+total_runs = 100
 # X_36_0, X_36_1, X_112_0
-setting = "X_112_0"
+setting = "X_36_1"
 # Objs
-objs = obj_set2
+objs = obj_set1
 #####
 
 cases = ["https", "quic"]
@@ -36,7 +37,7 @@ print("Setting :", setting)
 tcp_df = pd.DataFrame(columns=objs)
 quic_df = pd.DataFrame(columns=objs)
 
-for bw in [10,50,100]:
+for bw in [100]:
     https_obj_times = {}
     quic_obj_times = {}
     for obj in objs:
@@ -55,15 +56,25 @@ for bw in [10,50,100]:
                         times[case].append(plt_t)
                 except Exception as e:
                     print("Failed ", e)
-        
-        # print(times["https"])
-        # print(times["quic"])
+            print(file_name)
+           # print(times["https"])
+           # print(times["quic"])
 
         https_group1 = np.array(times["https"])
         quic_group2 = np.array(times["quic"])
 
+        for i in range(total_runs):
+            print(times["https"][i])
+
+        print("\n")
+
+        for i in range(total_runs):
+            print(times['quic'][i])
+
         # Print the variance of both data groups
         print("TCP PLT Std: ", np.std(https_group1),"\t QUIC PLT Std :", np.std(quic_group2))
+        print("TCP PLT 95th: ", np.percentile(https_group1, 95),"\t QUIC PLT 95th :", np.percentile(quic_group2, 95))
+
 
         # Calculate Stats and P-value of both data groups
         welch_test = stats.ttest_ind(https_group1, quic_group2, equal_var=False)
