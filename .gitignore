@@ -4,3 +4,5 @@
 data/*
 # Large Image files
 **/210mb.jpg
+# Cert
+quic/out/*
