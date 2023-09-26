@@ -14,7 +14,7 @@ obj_set2  = [ '1mbx1.html','500kx2.html' ,'200kx5.html' ,'100kx10.html', '10kx10
 # 100_100J10_0 => 100 Mbits/s, 100ms RTT with 10 ms jitter , 0% loss    ( Latency is varied on local interface to avoid delay )
 # 50V150_36_0 => Varying bandwith from 50 Mbits/s to 150 Mbits/s  , 36ms RTT, 0% loss ( Bandwidth is varied in link Bridge to avoid delay [Not Automated])
 ## BUG in config.read_args when just one --rates="100_36_1" is given . It takes as 100361 . so give min 2 "100_36_1,50_36_1"
-ratesX = "10_36_0,50_36_0,100_36_0,10_112_0,50_112_0,100_112_0,10_36_1,50_36_1,100_36_1,10_100J10_0,50_100J10_0,100_100J10_0"
+ratesX = "10_36_0,50_36_0,100_36_0,10_112_0,50_112_0,100_112_0,10_36_1,50_36_1,100_36_1,10_112J10_0,50_112J10_0,100_112J10_0"
 
 # All objects
 indexX = "5k,10k,100k,200k,500k,1mb,10mb,1mbx1,500kx2,200kx5,100kx10,10kx100,5kx200"
@@ -44,6 +44,7 @@ def initialize():
     configs.set('doJitter'          , False)
     configs.set('doIperf'           , True)
     configs.set('doPing'            , True)
+    configs.set('xvfb'              , False)
     configs.set('closeDrivers'      , False)
     configs.set('clearCacheConns'   , True)
     configs.set('separateTCPDUMPs'  , False)
@@ -59,6 +60,11 @@ def initialize():
     
     configs.read_args(sys.argv)
     configs.show_all()
+
+    if configs.get('xvfb'):
+        configs.set('xvfb-run', 'xvfb-run')
+    else:
+        configs.set('xvfb-run', '')
 
     return configs
 
@@ -126,9 +132,7 @@ def run(configs, link, tc):
         print('Creating directory')
         os.system('mkdir -p {}/{}'.format(configs.get('mainDir'), dirName))
 
-        ### Save System Info ###
-        print('./do_sysinfo.sh {}/{}/ {}'.format(configs.get('mainDir'), dirName, iperfServer))
-        os.system('./do_sysinfo.sh {}/{}/ {}'.format(configs.get('mainDir'), dirName, iperfServer))        
+        
 
         ### Run network tests ###
         if configs.get('doIperf'):
@@ -138,6 +142,9 @@ def run(configs, link, tc):
                 iperfServer = "192.168.1.1"
             print('./do_iperf.sh {}/{}/ {}'.format(configs.get('mainDir'), dirName, iperfServer))
             os.system('./do_iperf.sh {}/{}/ {}'.format(configs.get('mainDir'), dirName, iperfServer))
+            ### Save System Info ###
+            print('./do_sysinfo.sh {}/{}/ {}'.format(configs.get('mainDir'), dirName, iperfServer))
+            os.system('./do_sysinfo.sh {}/{}/ {}'.format(configs.get('mainDir'), dirName, iperfServer))
         
         if configs.get('doPing'):
             print('Running pings ...')
@@ -149,9 +156,10 @@ def run(configs, link, tc):
 
         ### Run benchmark scripts ###
         for index in configs.get('indexes').split(','):
-            cmd  = '{} {} '.format(configs.get('pythonBinary'), configs.get('script2run'))
+            cmd  = '{} {} {} '.format(configs.get('xvfb-run'), configs.get('pythonBinary'), configs.get('script2run'))
             cmd += '--against={} --networkInt={} '.format(configs.get('against'), configs.get('networkInt'))
             cmd += '--browserPath={} --quic-version={} '.format(configs.get('browserPath'), configs.get('quic-version') )
+            cmd += '--xvfb={} ' .format(configs.get('xvfb'))
             cmd += '--mainDir={} '.format(configs.get('mainDir'))
             # for html pages
             cmd += '--testDir={}/{}_html --testPage={}.html '.format(dirName, index, index)
@@ -173,7 +181,9 @@ def run(configs, link, tc):
 def main():
     PRINT_ACTION('Reading configs file and args', 0)
     configs = initialize()
+    # Create Dummynet Object - Used to change traffic shaping at link bridge
     link = DummyNet(configs.get('project'), configs.get('experiment'), "link_bridge")
+    # Create TC object - Used to change traffic shaping locally using TC
     tc = TC(configs.get('networkInt'))
 
     PRINT_ACTION('Running...', 0)
