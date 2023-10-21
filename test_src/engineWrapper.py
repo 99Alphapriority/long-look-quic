@@ -30,7 +30,7 @@ def initialize():
     configs.set('pythonBinary', '/proj/FEC-HTTP/nenv/bin/python')
     configs.set('mainDir', '')
 
-    configs.set('rates'             ,  "10_36_0,50_36_0,100_36_0,10_112_0,50_112_0,100_112_0,10_36_1,50_36_1,100_36_1")
+    configs.set('rates'             ,  "10_36_0,50_36_0,100_36_0,10_112_0,50_112_0,100_112_0,10_36_1,50_36_1,100_36_1,10_112J10_0,50_112J10_0,100_112J10_0")
     # configs.set('qualities'         , 'hd2160,hd1440,hd1080,hd720,large,medium,small,tiny,auto')
     configs.set('stopTime'          , '60')
     # 
@@ -85,6 +85,7 @@ def run(configs, link, tc):
         # If Jitter is required 
         # perform Jitter on local interface using tc
         # Just pass bw to dummynet with 0 latency
+        # if 36 ms implicit latency is needed , pass 36 ms to dummynet. and remaining as base for TC
         if 'J' in delay:
             configs.set('doJitter', True)
             base_delay = int(delay.split('J')[0])
@@ -93,7 +94,17 @@ def run(configs, link, tc):
             baseDelayUp = base_delay/2
             varDelayDown = var_delay/2
             varDelayUp = var_delay/2
-            delay = 0 # Don't change via dummynet
+            # Don't change via dummynet
+            # delay = 0 
+
+            # Change via dummynet
+            # implicit latency at dummynet, remaining latency at TC
+            implicit_latency = 36
+            delay = implicit_latency
+            baseDelayDown = (base_delay - implicit_latency)/2
+            baseDelayUp = (base_delay - implicit_latency)/2
+
+
 
         bw = int(bw)
         delay = int(delay)
