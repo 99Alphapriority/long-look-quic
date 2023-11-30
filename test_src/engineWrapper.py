@@ -14,7 +14,7 @@ obj_set2  = [ '1mbx1.html','500kx2.html' ,'200kx5.html' ,'100kx10.html', '10kx10
 # 100_100J10_0 => 100 Mbits/s, 100ms RTT with 10 ms jitter , 0% loss    ( Latency is varied on local interface to avoid delay )
 # 50V150_36_0 => Varying bandwith from 50 Mbits/s to 150 Mbits/s  , 36ms RTT, 0% loss ( Bandwidth is varied in link Bridge to avoid delay [Not Automated])
 ## BUG in config.read_args when just one --rates="100_36_1" is given . It takes as 100361 . so give min 2 "100_36_1,50_36_1"
-ratesX = "10_36_0,50_36_0,100_36_0,10_112_0,50_112_0,100_112_0,10_36_1,50_36_1,100_36_1,10_112J10_0,50_112J10_0,100_112J10_0"
+ratesX = "10_36_0,50_36_0,100_36_0,10_112_0,50_112_0,100_112_0,10_36_1,50_36_1,100_36_1,10_112J50_0,50_112J50_0,100_112J50_0"
 
 # All objects
 indexX = "5k,10k,100k,200k,500k,1mb,10mb,1mbx1,500kx2,200kx5,100kx10,10kx100,5kx200"
@@ -30,7 +30,7 @@ def initialize():
     configs.set('pythonBinary', '/proj/FEC-HTTP/nenv/bin/python')
     configs.set('mainDir', '')
 
-    configs.set('rates'             ,  "10_36_0,50_36_0,100_36_0,10_112_0,50_112_0,100_112_0,10_36_1,50_36_1,100_36_1,10_112J10_0,50_112J10_0,100_112J10_0")
+    configs.set('rates'             ,  "10_36_0,50_36_0,100_36_0,10_112_0,50_112_0,100_112_0,10_36_1,50_36_1,100_36_1")
     # configs.set('qualities'         , 'hd2160,hd1440,hd1080,hd720,large,medium,small,tiny,auto')
     configs.set('stopTime'          , '60')
     # 
@@ -109,6 +109,15 @@ def run(configs, link, tc):
         bw = int(bw)
         delay = int(delay)
         plr = int(plr)
+
+        # queue is set to BDP of the current setting in bytes
+        # B * Delay
+        # For higher bandwith (eg. 500Mbps) the queue will be larger than dummynet limit
+        # make sure to update dummynet limit for that many bytes
+        # sysctl net.inet.ip.dummynet.pipe_byte_limit=
+        queue = int((bw*pow(10, 6)*delay*pow(10, -3))/8)
+
+        print("queue :", queue)
         ### Do traffic shaping ###
         # Validate before
         link.show()
@@ -117,7 +126,7 @@ def run(configs, link, tc):
         # Bandwidth (bw) : Same bw is applied for both up and down links
         # DELAY : Delay is halved and applied for both up and down links
         # PLR : Loss from range (0-1) [meaning 0-100%] is applies for both links
-        link.add(bw, (delay/2), (plr/100))
+        link.add(bw, (delay/2), (plr/100), queue)
 
         # Validate After 
         link.show()

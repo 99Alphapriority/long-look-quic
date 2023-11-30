@@ -25,11 +25,11 @@ class DummyNet(object):
         # Remove shaping
         print("Removing traffic shaping...")
         for p in self.pipes:
-            # Remove Bandwidth
-            os.system("{} 'sudo ipfw pipe {} config bw  0Mbit/s delay  0ms plr  0'".format(self.sshNode,p))
+            # Remove Bandwidth, Set queue to default
+            os.system("{} 'sudo ipfw pipe {} config bw  0Mbit/s delay  0ms plr  0 queue 50'".format(self.sshNode,p))
 
 
-    def add(self, bw, delay, plr):
+    def add(self, bw, delay, plr, queue):
         dummyCmd1 = 'sudo ipfw pipe {} config '.format(self.pipe1)
         dummyCmd2 = 'sudo ipfw pipe {} config '.format(self.pipe2)
 
@@ -44,6 +44,10 @@ class DummyNet(object):
         if plr:
             dummyCmd1 += 'plr {} '.format(plr)
             dummyCmd2 += 'plr {} '.format(plr)
+        
+        if queue:
+            dummyCmd1 += 'queue {}bytes '.format(queue)
+            dummyCmd2 += 'queue {}bytes '.format(queue)
 
         print("Add traffic shaping")
         os.system("{} {}".format(self.sshNode, dummyCmd1))
