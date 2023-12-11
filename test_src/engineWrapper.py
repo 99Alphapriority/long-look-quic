@@ -30,7 +30,7 @@ def initialize():
     configs.set('pythonBinary', '/proj/FEC-HTTP/nenv/bin/python')
     configs.set('mainDir', '')
 
-    configs.set('rates'             ,  "10_36_0,50_36_0,100_36_0,10_112_0,50_112_0,100_112_0,10_36_1,50_36_1,100_36_1")
+    configs.set('rates'             ,  "10_36_0,50_36_0,100_36_0,10_112_0,50_112_0,100_112_0,10_36_1,50_36_1,100_36_1,10_112J50_0,50_112J50_0,100_112J50_0")
     # configs.set('qualities'         , 'hd2160,hd1440,hd1080,hd720,large,medium,small,tiny,auto')
     configs.set('stopTime'          , '60')
     # 
@@ -53,6 +53,7 @@ def initialize():
     configs.set('lossArgs'          , False)
     configs.set('delayArgs'         , False)
     configs.set('changeBW'          , False)
+    configs.set('logNetlog'         , False)
     configs.set('latencyOrLimit'    , 'latency')
     configs.set('against'           , 'emulab')
     configs.set('quic_server_path'  , '')
@@ -110,12 +111,12 @@ def run(configs, link, tc):
         delay = int(delay)
         plr = int(plr)
 
-        # queue is set to BDP of the current setting in bytes
+        # queue is set to (2x) BDP of the current setting in bytes
         # B * Delay
         # For higher bandwith (eg. 500Mbps) the queue will be larger than dummynet limit
         # make sure to update dummynet limit for that many bytes
         # sysctl net.inet.ip.dummynet.pipe_byte_limit=
-        queue = int((bw*pow(10, 6)*delay*pow(10, -3))/8)
+        queue = int((bw*pow(10, 6)*delay*pow(10, -3))/8) * 2
 
         print("queue :", queue)
         ### Do traffic shaping ###
@@ -179,6 +180,7 @@ def run(configs, link, tc):
             cmd  = '{} {} {} '.format(configs.get('xvfb-run'), configs.get('pythonBinary'), configs.get('script2run'))
             cmd += '--against={} --networkInt={} '.format(configs.get('against'), configs.get('networkInt'))
             cmd += '--browserPath={} --quic-version={} '.format(configs.get('browserPath'), configs.get('quic-version') )
+            cmd += '--logNetlog={} '.format(configs.get('logNetlog'))
             cmd += '--xvfb={} ' .format(configs.get('xvfb'))
             cmd += '--mainDir={} '.format(configs.get('mainDir'))
             # for html pages
