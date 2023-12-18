@@ -32,8 +32,8 @@ class Driver(object):
     
     # Request resource and capture timings using har-capturer
     @timeout(browserLoadTimeout)
-    def get(self, url, outFile):
-        cmd = ['chrome-har-capturer', '--force', '--give-up', self.pageLoadTimeout, '--port', self.debugPort, '-o', outFile, url]
+    def get(self, capture_options, url, outFile):
+        cmd = ['chrome-har-capturer'] + capture_options + ['--force', '--give-up', self.pageLoadTimeout, '--port', self.debugPort, '-o', outFile, url]
 
         print(' '.join(cmd))
         self.process  = subprocess.Popen(cmd)
@@ -64,7 +64,8 @@ def main():
     PRINT_ACTION('Creating options', 0)
     drivers       = {}    
     # Stats module missing
-    chromeOptions = {}
+    chromeOptions = {}      # Options for Chrome
+    harcaptureOptions = []  # Options for chrome-har-capturer
 #     commonOptions = ['--no-first-run']
     commonOptions = [
                         '--no-sandbox',
@@ -94,6 +95,14 @@ def main():
     if configs.get('clearCacheConns'):
         commonOptions += ['--enable-benchmarking', '--enable-net-benchmarking']    
 
+    if configs.get('zeroRtt'):
+        # To make sure chrome sends 0-RTT packets, even after closing connections
+        # We do two things , 
+        # --cache = Which make sures no new Chrome Context is created (new incognito profile), required for TLS 0-RTT to work 
+        # --user-metric = We pass runtime commands to clear cache and close connections , required to close connections without closing browser context.
+        harcaptureOptions += ['--cache', '--user-metric',
+        'chrome.benchmarking.clearCache();chrome.benchmarking.clearHostResolverCache();chrome.benchmarking.clearPredictorCache();chrome.benchmarking.closeConnections();']
+
     debugPorts = {
                 'https'       : str(configs.get('httpsDebugPort')),
                 'quic'        : str(configs.get('quicDebugPort')),
@@ -122,12 +131,15 @@ def main():
             
     # Starting TCPDUMP (Client side)
     if configs.get('tcpdump'):
+        # if seperate dumps are enabled for each request, don't start now
         if configs.get('separateTCPDUMPs'):
             tcpdumpObj = None
+        # if No seperate dumps are enabled , start now
         else:
             PRINT_ACTION('Starting TCPDUMP', 0)
             tcpdumpObj = TCPDUMP()
             print(tcpdumpObj.start(tcpdumpFile, interface=configs.get('networkInt'), ports=[configs.get("httpsServerPort"), configs.get("quicServerPort")], hosts=[configs.get("httpsServerIP")]))
+            tcpdumpObj.start(tcpdumpFile, interface=configs.get('networkInt'), ports=[configs.get("httpsServerPort"), configs.get("quicServerPort")], hosts=[configs.get("httpsServerIP")])
     else:
         tcpdumpObj = None
 
@@ -135,7 +147,7 @@ def main():
     logName     = False
     tcpprobePid = False
 
-        # Asking remote host to start runTcpProbe
+    # Asking remote host to start runTcpProbe
 
     
     # Generate side Traffic
@@ -150,7 +162,7 @@ def main():
             url = '{}://{}/{}'.format(methods[case], configs.get('host')[case], configs.get('testPage'), testID)            
 
             # Do stats
-            # Do TCP dump    
+            # Do TCP dump, if separate dumps are needed , start here now.    
             if configs.get('separateTCPDUMPs') and configs.get('tcpdump'):
                 tcpdumpFile = '{}/{}_{}_tcpdump.pcap'.format(tcpdumpDir, os.path.basename(testDir), testID)
                 tcpdumpObj  = TCPDUMP()
@@ -158,14 +170,14 @@ def main():
                     tcpdumpObj.start(tcpdumpFile, interface=configs.get('networkInt'), ports=[configs.get("httpsServerPort")], hosts=[configs.get("httpsServerIP")])
                 elif case == 'quic':
                     tcpdumpObj.start(tcpdumpFile, interface=configs.get('networkInt'), ports=[configs.get("quicServerPort")], hosts=[configs.get("quicServerIP")])
-                else: # generic capturing
+                else: # generic capturing for both
                     tcpdumpObj.start(tcpdumpFile, interface=configs.get('networkInt'), ports=[configs.get("httpsServerPort"), configs.get("quicServerPort")], hosts=[configs.get("httpsServerIP")])
 
             if configs.get('closeDrivers'):
                 PRINT_ACTION('Opening driver: '+ testID, 2, action=False)
                 drivers[case].open(configs.get('browserPath'), chromeOptions[case], debugPorts[case])
             try:
-                drivers[case].get(url, resultsDir + '/' + testID + '.har')
+                drivers[case].get(harcaptureOptions, url, resultsDir + '/' + testID + '.har')
             except TimeoutError:
                     print('Browser load timeout ({}) happend!!!'.format(browserLoadTimeout))
                     os.system('sudo pkill -f chrome-har-capturer')

@@ -156,10 +156,11 @@ def initialize():
 
     configs.set('runTcpProbe'       , False)
 
-    configs.set('logNetlog'       , False)
+    configs.set('logNetlog'         , False)
 
     configs.set('closeDrivers'      , False)
     configs.set('clearCacheConns'   , True)
+    configs.set('zeroRtt'           , True)
 
     configs.set('browserPath'       , False)
 
@@ -168,10 +169,10 @@ def initialize():
 
 
     configs.set('httpsServerIP'     , "192.168.1.1")
-    configs.set('httpsServerPort'     , "443")
+    configs.set('httpsServerPort'   , "443")
 
-    configs.set('quicDebugPort'    , "9222")
-    configs.set('httpsDebugPort'     , "9221")
+    configs.set('quicDebugPort'     , "9222")
+    configs.set('httpsDebugPort'    , "9221")
 
 
     configs.set('cases'             , 'https,quic')
@@ -276,7 +277,7 @@ def initialize():
     
     return configs, cases, methods, testDir, resultsDir, statsDir, userDirs, screenshotsDir, dataPaths, netLogs, tcpdumpDir, tcpdumpFile, uniqeOptions
 
-
+# This is for using selenium only, not called in our experiments
 def main():
     #The following line is to make sure the script has sudo privilage to run tcpdump
     os.system('sudo echo')

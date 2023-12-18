@@ -47,6 +47,7 @@ def initialize():
     configs.set('xvfb'              , False)
     configs.set('closeDrivers'      , False)
     configs.set('clearCacheConns'   , True)
+    configs.set('zeroRtt'           , True)     # Use this along with xvfb, Since som runtime commands don't work in headless mode
     configs.set('separateTCPDUMPs'  , False)
     configs.set('browserPath'       , False)
     configs.set('addPeakRate'       , False)
@@ -56,6 +57,7 @@ def initialize():
     configs.set('logNetlog'         , False)
     configs.set('latencyOrLimit'    , 'latency')
     configs.set('against'           , 'emulab')
+    configs.set('cases'             , 'https,quic')
     configs.set('quic_server_path'  , '')
     configs.set('script2run'        , 'engineChrome_harCapturer.py')
     
@@ -180,6 +182,8 @@ def run(configs, link, tc):
             cmd  = '{} {} {} '.format(configs.get('xvfb-run'), configs.get('pythonBinary'), configs.get('script2run'))
             cmd += '--against={} --networkInt={} '.format(configs.get('against'), configs.get('networkInt'))
             cmd += '--browserPath={} --quic-version={} '.format(configs.get('browserPath'), configs.get('quic-version') )
+            cmd += '--cases={} '.format(configs.get('cases'))
+            cmd += '--tcpdump={} separateTCPDUMPs={} '.format(configs.get('tcpdump'), configs.get('separateTCPDUMPs'))
             cmd += '--logNetlog={} '.format(configs.get('logNetlog'))
             cmd += '--xvfb={} ' .format(configs.get('xvfb'))
             cmd += '--mainDir={} '.format(configs.get('mainDir'))
