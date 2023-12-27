@@ -33,7 +33,7 @@ class Driver(object):
     # Request resource and capture timings using har-capturer
     @timeout(browserLoadTimeout)
     def get(self, capture_options, url, outFile):
-        cmd = ['chrome-har-capturer'] + capture_options + ['--force', '--give-up', self.pageLoadTimeout, '--port', self.debugPort, '-o', outFile, url]
+        cmd = ['chrome-har-capturer'] + capture_options + [ '--give-up', self.pageLoadTimeout, '--port', self.debugPort, '-o', outFile, url]
 
         print(' '.join(cmd))
         self.process  = subprocess.Popen(cmd)
@@ -95,8 +95,10 @@ def main():
     if configs.get('clearCacheConns'):
         commonOptions += ['--enable-benchmarking', '--enable-net-benchmarking']    
 
-    if configs.get('zeroRtt'):
-        # To make sure chrome sends 0-RTT packets, even after closing connections
+    # add options for 0-RTT for quic RFCv1, in new chrome-har-capturer
+    # For gQUIC v37, we use old chrome-har-capturer(v0.9.5) version which uses 0-RTT
+    if configs.get('zeroRtt') and configs.get('quic-version') == 'RFCv1':
+        # To make sure chrome sends 0-RTT packets for quic RFCv1, even after closing connections
         # We do two things , 
         # --cache = Which make sures no new Chrome Context is created (new incognito profile), required for TLS 0-RTT to work 
         # --user-metric = We pass runtime commands to clear cache and close connections , required to close connections without closing browser context.

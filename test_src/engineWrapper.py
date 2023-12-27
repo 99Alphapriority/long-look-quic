@@ -47,7 +47,7 @@ def initialize():
     configs.set('xvfb'              , False)
     configs.set('closeDrivers'      , False)
     configs.set('clearCacheConns'   , True)
-    configs.set('zeroRtt'           , True)     # Use this along with xvfb, Since som runtime commands don't work in headless mode
+    configs.set('zeroRtt'           , True)     # Use this along with xvfb, Since some runtime commands don't work in headless mode
     configs.set('separateTCPDUMPs'  , False)
     configs.set('browserPath'       , False)
     configs.set('addPeakRate'       , False)
