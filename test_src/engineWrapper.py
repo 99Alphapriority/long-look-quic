@@ -44,7 +44,7 @@ def initialize():
     configs.set('doJitter'          , False)
     configs.set('doIperf'           , True)
     configs.set('doPing'            , True)
-    configs.set('xvfb'              , False)
+    configs.set('xvfb'              , True)     # Use xvfb when headless mode is not used
     configs.set('closeDrivers'      , False)
     configs.set('clearCacheConns'   , True)
     configs.set('zeroRtt'           , True)     # Use this along with xvfb, Since some runtime commands don't work in headless mode
