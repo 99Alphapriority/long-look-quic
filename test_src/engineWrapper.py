@@ -129,7 +129,7 @@ def run(configs, link, tc):
         # Bandwidth (bw) : Same bw is applied for both up and down links
         # DELAY : Delay is halved and applied for both up and down links
         # PLR : Loss from range (0-1) [meaning 0-100%] is applies for both links
-        link.add(bw, (delay/2), (plr/100), queue)
+        link.add(bw, (delay/2), ((plr/2)/100), queue)
 
         # Validate After 
         link.show()
