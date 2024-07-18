@@ -20,7 +20,7 @@ total_runs = int(sys.argv[2])
 # X_36_0, X_36_1, X_112_0
 setting = sys.argv[3]
 # Objs
-objs = obj_set2
+objs = obj_set1
 #####
 
 cases = ["https", "quic"]
@@ -31,7 +31,14 @@ tcp_df = pd.DataFrame(columns=objs)
 quic_df = pd.DataFrame(columns=objs)
 avg_df = pd.DataFrame(columns=objs)
 
-for bw in [10, 50, 100]:
+run_time_array = {}
+
+# Create an excel file
+excel_file = mainDir + "times.xlsx"
+
+bandwidth_array = [10,50,100]
+
+for bw in bandwidth_array:
     https_obj_times = {}
     quic_obj_times = {}
     avg_obj_times = {}
@@ -46,7 +53,10 @@ for bw in [10, 50, 100]:
                         j = json.load(f)
                         load_t = j['log']['pages'][0]['pageTimings']['onLoad']
                         dns_t = j['log']['entries'][0]['timings']['dns']
-                        plt_t = load_t - dns_t
+                        if -1 == dns_t:
+                            plt_t = load_t
+                        else:
+                            plt_t = load_t - dns_t
                         times[case].append(plt_t)
                 except Exception as e:
                     print("Failed ", e)
@@ -66,6 +76,11 @@ for bw in [10, 50, 100]:
 
         for i in range(1,total_runs):
             print(times['quic'][i])
+
+        index = str(bw) + "Mbps_" + obj
+        https_reshaped = https_group1.reshape(-1,1)
+        quic_reshaped = quic_group2.reshape(-1,1)
+        run_time_array[index] = np.concatenate((https_reshaped, quic_reshaped), axis=1)
 
         # Print the variance of both data groups
         print("TCP PLT Std: ", np.std(https_group1),"\t QUIC PLT Std :", np.std(quic_group2))
@@ -119,3 +134,34 @@ print()
 print("Percentage Difference")
 print(avg_df)
 print()
+
+# Create an excel file
+excel_file = mainDir + "times.xlsx"
+
+# Create a custom index
+custom_index = ['10Mbps', '50Mbps', '100Mbps']
+
+# Set custom index
+avg_df.index = custom_index
+tcp_df.index = custom_index
+quic_df.index = custom_index
+
+#Remove the .html suffix from the first row
+new_columns = [col.replace('.html', '') for col in tcp_df.columns]
+tcp_df.columns = new_columns
+quic_df.columns = new_columns
+avg_df.columns = new_columns
+
+# Create an ExcelWriter object
+with pd.ExcelWriter(excel_file) as writer:
+    # Write each DataFrame to a different sheet
+    tcp_df.to_excel(writer, sheet_name='TCP times', index=True)
+    quic_df.to_excel(writer, sheet_name='QUIC times', index=True)
+    avg_df.to_excel(writer, sheet_name='Average times', index=True)
+
+    for bw in bandwidth_array:
+        for obj in objs:
+            index = str(bw) + "Mbps_" + obj
+            column_names = ['TCP', 'QUIC']
+            run_times_df = pd.DataFrame(run_time_array[index], columns=column_names)
+            run_times_df.to_excel(writer, sheet_name=index, index=False)		
