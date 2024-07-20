@@ -27,9 +27,15 @@ cases = ["https", "quic"]
 
 print("Setting :", setting)
 
-tcp_df = pd.DataFrame(columns=objs)
-quic_df = pd.DataFrame(columns=objs)
-avg_df = pd.DataFrame(columns=objs)
+tcp_avg_df = pd.DataFrame(columns=objs)
+quic_avg_df = pd.DataFrame(columns=objs)
+avg_percentage_diff_df = pd.DataFrame(columns=objs)
+
+tcp_median_df = pd.DataFrame(columns=objs)
+quic_median_df = pd.DataFrame(columns=objs)
+
+tcp_variance_df = pd.DataFrame(columns=objs)
+quic_variance_df = pd.DataFrame(columns=objs)
 
 run_time_array = {}
 
@@ -39,9 +45,15 @@ excel_file = mainDir + "times.xlsx"
 bandwidth_array = [10,50,100]
 
 for bw in bandwidth_array:
-    https_obj_times = {}
-    quic_obj_times = {}
+    https_obj_avg_times = {}
+    https_obj_median_times = {}
+    https_obj_variance_times = {}
+
+    quic_obj_avg_times = {}
+    quic_obj_median_times = {}
+    quic_obj_variance_times = {}
     avg_obj_times = {}
+
     for obj in objs:
         print("Object :", obj)
         times = { "https": [], "quic": []}
@@ -98,41 +110,74 @@ for bw in bandwidth_array:
 
         https_avg_time = np.average(https_group1)
         print("HTTPS: ", https_avg_time)
-        https_obj_times[obj] = https_avg_time
+        https_obj_avg_times[obj] = https_avg_time
+
+        https_obj_median_times[obj] = np.median(https_group1)
+        https_obj_variance_times[obj] = np.var(https_group1)
 
         quic_avg_time = np.average(quic_group2)
         print("QUIC: ", quic_avg_time)
-        quic_obj_times[obj] = quic_avg_time
+        quic_obj_avg_times[obj] = quic_avg_time
+
+        quic_obj_median_times[obj] = np.median(quic_group2)
+        quic_obj_variance_times[obj] = np.var(quic_group2)
+
         print("")
         
-        avg_obj_times[obj] = ((https_obj_times[obj] - quic_obj_times[obj])/quic_obj_times[obj]) * 100
+        avg_obj_times[obj] = ((https_obj_avg_times[obj] - quic_obj_avg_times[obj])/quic_obj_avg_times[obj]) * 100
 
-    # print("TCP Times :",  https_obj_times)
-    # print("QUIC Times :", quic_obj_times)
+    # print("TCP Times :",  https_obj_avg_times)
+    # print("QUIC Times :", quic_obj_avg_times)
 
-    # tcp_df = tcp_df.append(https_obj_times, ignore_index = True)
-    # quic_df = quic_df.append(quic_obj_times, ignore_index = True)
-    tcp_df.loc[len(tcp_df)] = https_obj_times
-    quic_df.loc[len(quic_df)] = quic_obj_times
-    avg_df.loc[len(avg_df)] = avg_obj_times
+    # tcp_avg_df = tcp_avg_df.append(https_obj_avg_times, ignore_index = True)
+    # quic_avg_df = quic_avg_df.append(quic_obj_avg_times, ignore_index = True)
+    tcp_avg_df.loc[len(tcp_avg_df)] = https_obj_avg_times
+    quic_avg_df.loc[len(quic_avg_df)] = quic_obj_avg_times
+    avg_percentage_diff_df.loc[len(avg_percentage_diff_df)] = avg_obj_times
+
+    tcp_median_df.loc[len(tcp_median_df)] = https_obj_median_times
+    quic_median_df.loc[len(quic_median_df)] = quic_obj_median_times
+
+    tcp_variance_df.loc[len(tcp_variance_df)] = https_obj_variance_times
+    quic_variance_df.loc[len(quic_variance_df)] = quic_obj_variance_times
 
 print("QUIC Version : ", mainDir)
 print("Setting :", setting)
 print("Total Runs :", total_runs)
-print("TCP Times")
-print(tcp_df)
+print("TCP average Times")
+print(tcp_avg_df)
 print()
-pprint(tcp_df.to_string(header=False, index=False).split('\n'))
+#pprint(tcp_avg_df.to_string(header=False, index=False).split('\n'))
 
 print()
-print("QUIC Times")
-print(quic_df)
+print("TCP median Times")
+print(tcp_median_df)
 print()
-pprint(quic_df.to_string(header=False, index=False).split('\n'))
+
+print()
+print("TCP variance Times")
+print(tcp_variance_df)
+print()
+
+print()
+print("QUIC average Times")
+print(quic_avg_df)
+print()
+#pprint(quic_avg_df.to_string(header=False, index=False).split('\n'))
+
+print()
+print("QUIC median Times")
+print(quic_median_df)
+print()
+
+print()
+print("QUIC variance Times")
+print(quic_variance_df)
+print()
 
 print()
 print("Percentage Difference")
-print(avg_df)
+print(avg_percentage_diff_df)
 print()
 
 # Create an excel file
@@ -142,22 +187,40 @@ excel_file = mainDir + "times.xlsx"
 custom_index = ['10Mbps', '50Mbps', '100Mbps']
 
 # Set custom index
-avg_df.index = custom_index
-tcp_df.index = custom_index
-quic_df.index = custom_index
+avg_percentage_diff_df.index = custom_index
+tcp_avg_df.index = custom_index
+quic_avg_df.index = custom_index
+
+tcp_median_df.index = custom_index
+quic_median_df.index = custom_index
+
+tcp_variance_df.index = custom_index
+quic_variance_df.index = custom_index
 
 #Remove the .html suffix from the first row
-new_columns = [col.replace('.html', '') for col in tcp_df.columns]
-tcp_df.columns = new_columns
-quic_df.columns = new_columns
-avg_df.columns = new_columns
+new_columns = [col.replace('.html', '') for col in tcp_avg_df.columns]
+tcp_avg_df.columns = new_columns
+quic_avg_df.columns = new_columns
+avg_percentage_diff_df.columns = new_columns
+
+tcp_median_df.columns = new_columns
+quic_median_df.columns = new_columns
+
+tcp_variance_df.columns = new_columns
+quic_variance_df.columns = new_columns
 
 # Create an ExcelWriter object
 with pd.ExcelWriter(excel_file) as writer:
     # Write each DataFrame to a different sheet
-    tcp_df.to_excel(writer, sheet_name='TCP times', index=True)
-    quic_df.to_excel(writer, sheet_name='QUIC times', index=True)
-    avg_df.to_excel(writer, sheet_name='Average times', index=True)
+    tcp_avg_df.to_excel(writer, sheet_name='TCP average times', index=True)
+    quic_avg_df.to_excel(writer, sheet_name='QUIC average times', index=True)
+    avg_percentage_diff_df.to_excel(writer, sheet_name='percentage difference times', index=True)
+
+    tcp_median_df.to_excel(writer, sheet_name='TCP median times', index=True)
+    quic_median_df.to_excel(writer, sheet_name='QUIC median times', index=True)
+
+    tcp_variance_df.to_excel(writer, sheet_name='TCP variance times', index=True)
+    quic_variance_df.to_excel(writer, sheet_name='QUIC variance times', index=True)
 
     for bw in bandwidth_array:
         for obj in objs:
@@ -165,3 +228,4 @@ with pd.ExcelWriter(excel_file) as writer:
             column_names = ['TCP', 'QUIC']
             run_times_df = pd.DataFrame(run_time_array[index], columns=column_names)
             run_times_df.to_excel(writer, sheet_name=index, index=False)		
+
